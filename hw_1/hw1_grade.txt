@@ -1,0 +1,79 @@
+Your score: 21/24
+
+Breakdown & Comments: 
+
+----------------------------------------
+Coding Style: 4/4
+----------------------------------------
+1/1: git repo style
+1/1: code style
+1/1: notebook style
+1/1: code portability
+
+code style --
+You seem to define a lot of new variables unnecessarily; 
+see Problem 2 comments.
+
+----------------------------------------
+Problem 1: 5/6 
+----------------------------------------
+3/3: good attempt of each part
+2/3: successful execution of each part
+
+part 1 should have found sub-pixel offsets (assume offset is sub-pixel;
+look at power in pixels adjacent to the discovered max);
+would give a clearer image
+
+----------------------------------------
+Problem 2: 7/7
+----------------------------------------
+2/2: good attempt of parts 2 and 5
+5/5: successful completion of parts 1-5
+
+part 2 - use variable names such that your outputs match what's in the
+doc string
+
+part 2 - why copy xfft?
+
+part 2 - technical/mathematical note:
+power spectrum (for finding the "smallest component") is [prop to] y**2
+
+part 3 - You are defining new variables way more often than needed; e.g.
+in compress_signal() as aforementioned but then also at the end of 
+of compress_wav() you just rename variables so that
+your outputs are right -- why not just go back and write
+  rate, x = wavfile.read(fname)
+if you know that variable needs a specific name? 
+This is a little bit of a code style remark, but I also think that
+in some cases you're wasting memory -- you're definitely making your code
+confusing, as people who know that "x" will be a return variable don't see
+when it comes in until the end.
+
+part 3 - 
+change from this syntax:
+    signalInfo = wavfile.read(fname)
+    sampleRate = signalInfo[0]
+    signalData = signalInfo[1]
+to 
+    sampleRate, signalData = wavfile.read(fname)
+
+
+----------------------------------------
+Problem 3: 1/2 
+----------------------------------------
+1/2: successful completion of year/lunar estimates
+
+I don't	see from your answer that you understand periodograms
+(no comments or	plots); seems like blind impelementation of periodogram()
+
+----------------------------------------
+Problem 4: 4/5 
+----------------------------------------
+1/1: understanding what is going on in the plot for part 1
+1/1: good attempt of part 1
+2/3: successful completion of parts 1-3
+
+don't know why because you haven't done anything clearly wrong/absurd in your
+functions, but your numbers for part 3 are way too high (and part 2 as well)
+
+Graded by C. E. Harris
