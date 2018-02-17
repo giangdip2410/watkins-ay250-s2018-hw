@@ -2,6 +2,10 @@
 
 ## Problem 1
 
+### houndify.py File
+
+To use Houndify, the houndify.py file from their SDK should be in the same directory as the notebook. I have committed this file to the repository, so no action should need to be done.
+
 ### my_credentials.py Format
 
 **my_credentials.py** should be included as a file. The format of the file is:
@@ -21,7 +25,7 @@ HOUNDIFY_CLIENT_KEY = "..."
 
 There are key words that Monty looks for.
 
-## Sending an email
+#### Sending an email
 
 Say something along the lines of "Hey Monty send an email with subject hello and body goodbye".
 
@@ -29,7 +33,7 @@ Key word is **email**!
 
 Monty hears "email" and knows to send an email. He then searches for "subject" and uses the words following subject. He does the same for "body". If a subject or body is not specified, then Monty uses "(No Subject)" or "(No Body)" respectively. If a subject or body ends in "and", Monty drops the word "and" from the end. (So that, in the example, the subject is "hello", not "hello and")
 
-## Doing a calculation
+#### Doing a calculation
 
 Say something along the lines of "Hey Monty calculate three minus 5 plus fifty"
 
@@ -37,7 +41,7 @@ Key word is **calculate**!
 
 Monty takes the words after "calculate" and attempts to solve the equation that they describe. The operations that are supported are addition, subtraction, multiplication, and division. For addition, use the word "plus". For subtraction, use the word "minus". For multiplication, use either "times" or "mutiplied by". For division, use "divided by". Monty skips unrecognized words that are not numbers or the specified operations. If two numbers are said in a row, Monty assumes they are added together. If two operations are said in a row, Monty uses the first one.
 
-## Telling a joke
+#### Telling a joke
 
 Say something along the lines of "Hey Monty tell me a joke".
 
@@ -47,7 +51,7 @@ Monty hears the word "joke" and requests a joke from [icanhazdadjoke.com](http:/
 
 ## Problem 2
 
-Nothing in the README for this problem yet...
+It is assumed that the sound_files/ folder is in the same directory as the homework assignment.
 
 
 
