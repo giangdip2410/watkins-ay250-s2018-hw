@@ -34,7 +34,7 @@ I have also taken auto-cutting code (`General.py`) and filtering (`Filtering.py`
 
 ### 5. Testing the Code
 
-As far as testing the code goes, the main function that does the processing is called `processDIDV`. This function has calls to every other function in the `DIDV.py` code. Thus, I only needed to set up a Jupyter Notebook that loaded an example dataset and called the `processDIDV` function (making sure that the `fit`, `autoCut`, and `makePlots` flags are set to True). The Jupyter Notebook I wrote the test in is called `test_didv.ipynb`. This notebook prints out the saved data and loads all of the saved plots into the notebook to quickly show that the fits weree successful.
+As far as testing the code goes, the main function that does the processing is called `processDIDV`. This function has calls to every other function in the `DIDV.py` code. Thus, I only needed to set up a Jupyter Notebook that loaded an example dataset and called the `processDIDV` function (making sure that the `fit`, `autoCut`, and `makePlots` flags are set to True). The Jupyter Notebook I wrote the test in is called `test_didv.ipynb`. This notebook prints out the saved data and loads all of the saved plots into the notebook to quickly show that the fits were successful.
 
 ### 6. Results
 
