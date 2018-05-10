@@ -66,19 +66,19 @@ The test script `test_didv.ipynb` shows that the fits were indeed successful. I 
 
 ![](dIdV_Meanexample_traces_data.png)
 
-**Figure 7:** Histogram of the mean of each trace.
+**Figure 7:** Histogram of the mean of each trace. Note that the green part of the histogram shows the data that survived the cuts.
 
 ![](dIdV_Rangeexample_traces_data.png)
 
-**Figure 8:** Histogram of the range (max - min) of each trace.
+**Figure 8:** Histogram of the range (max - min) of each trace. Note that the green part of the histogram shows the data that survived the cuts.
 
 ![](dIdV_Slopeexample_traces_data.png)
 
-**Figure 9:** Histogram of the slope of each trace.
+**Figure 9:** Histogram of the slope of each trace. Note that the green part of the histogram shows the data that survived the cuts.
 
 ![](dIdV_Skewnessexample_traces_data.png)
 
-**Figure 10:** Histogram of the skewness of each trace.
+**Figure 10:** Histogram of the skewness of each trace. Note that the green part of the histogram shows the data that survived the cuts.
 
 ![](Capture_1.png)
 
