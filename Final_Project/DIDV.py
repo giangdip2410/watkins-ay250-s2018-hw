@@ -1262,8 +1262,7 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
             rmax=max(ranges_all*1e6)
         else:
             rmax=max(ranges*1e6)
-        if(rmax < 10.0):
-            rmax=10.0
+            
         ax.hist(ranges*1e6, bins=200, range=(0.0, rmax), log=True, histtype='step', color='green')
         if(autoCut):
             ax.hist(ranges_all*1e6, bins=200, range=(0.0, rmax), log=True, histtype='step', color='black')
