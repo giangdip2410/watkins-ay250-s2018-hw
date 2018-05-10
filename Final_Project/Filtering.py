@@ -1,5 +1,5 @@
 import numpy as np
-from np.fft import rfft,rfftfreq,irfft
+from numpy.fft import rfft,rfftfreq,irfft
 
 def OptimumFilterAmplitude(Signal, Template, NoisePSD, Fs, withDelay=True, normalize=False, coupling='AC'):
     """Function that applies an optimum filter to signal, given a noise PSD and a template. This function supports optimum filters with and without time delay.

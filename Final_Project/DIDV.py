@@ -973,7 +973,7 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
     
     #store results
     tmean = np.mean(traces,axis=0)
-    fdIdV = np.copy(fdIdVi)
+    fdIdV,zeroInds = DeconvolveDIDV(timeArray,tmean,Rsh,sgAmp,sgFreq,dutycycle)[::2]
     
     # divide by sqrt(N) for standard deviation of mean
     sdIdV = stdComplex(dIdVs)/np.sqrt(nTraces)
@@ -1229,10 +1229,12 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
         plt.close(fig)
         
         ## histogram of the skewnesses
-        fig, ax = plt.subplots(figsize=(8,6))
-        ax.hist(skewnesses, bins=200, range=(0, 1), log=True, histtype='step', color='green')
+        fig, ax = plt.subplots(figsize=(10,6))
+        topSkew = np.max(skewnesses)
+        botSkew = np.min(skewnesses)
+        ax.hist(skewnesses, bins=200, range=(botSkew, topSkew), log=True, histtype='step', color='green')
         if(autoCut):
-            ax.hist(skews_all, bins=200, range=(0, 1), log=True, histtype='step', color='black')
+            ax.hist(skews_all, bins=200, range=(botSkew, topSkew), log=True, histtype='step', color='black')
         ax.set_xlabel('Skewness')
         ax.set_title(fileStr)
         ax.grid(linestyle='dotted')
@@ -1241,7 +1243,7 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
         plt.close(fig)
         
         ## histogram of the means
-        fig, ax = plt.subplots(figsize=(8,6))
+        fig, ax = plt.subplots(figsize=(10,6))
         topMean=np.max(means*1e6)
         botMean=np.min(means*1e6)
         ax.hist(means*1e6, bins=200, range=(botMean, topMean), log=True, histtype='step', color='green')
@@ -1255,7 +1257,7 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
         plt.close(fig)
         
         ## histogram of the ranges
-        fig, ax = plt.subplots(figsize=(8,6))
+        fig, ax = plt.subplots(figsize=(10,6))
         if(autoCut):
             rmax=max(ranges_all*1e6)
         else:
@@ -1273,7 +1275,7 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
         plt.close(fig)
         
         ## histogram of the slopes
-        fig, ax = plt.subplots(figsize=(8,6))
+        fig, ax = plt.subplots(figsize=(10,6))
         ts=np.array(slopes)*1e6
         ax.hist(slopes*1e6, bins=200, range=(-10, 10), log=True, histtype='step', label='Top', color='green')
         if(autoCut):
