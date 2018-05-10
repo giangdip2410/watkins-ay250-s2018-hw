@@ -40,22 +40,30 @@ As far as testing the code goes, the main function that does the processing is c
 
 The test script `test_didv.ipynb` shows that the fits were indeed successful. I have also showed the outputted plots below, to show that they work. Since a screen capture was requested, I've added screen captures below the outputted figures.
 
-![](dIsTracesexample_trace_data.png)
+![](dIsTracesexample_traces_data.png)
 
-![](dIsTracesFitexample_trace_data.png)
+![](dIsTracesFitexample_traces_data.png)
 
-![](dIsTracesZoomFitexample_trace_data.png)
+![](dIsTracesZoomFitexample_traces_data.png)
 
-![](dIsTracesFlippedexample_trace_data.png)
+![](dIsTracesFlippedexample_traces_data.png)
 
-![](dIdV_Realexample_trace_data.png)
+![](dIdV_Realexample_traces_data.png)
 
-![](dIdV_Imagexample_trace_data.png)
+![](dIdV_Imagexample_traces_data.png)
 
-![](dIdV_Meanexample_trace_data.png)
+![](dIdV_Meanexample_traces_data.png)
 
-![](dIdV_Rangeexample_trace_data.png)
+![](dIdV_Rangeexample_traces_data.png)
 
-![](dIdV_Slopeexample_trace_data.png)
+![](dIdV_Slopeexample_traces_data.png)
 
-![](dIdV_Skewnessexample_trace_data.png)
+![](dIdV_Skewnessexample_traces_data.png)
+
+![](Capture_1.png)
+
+![](Capture_2.png)
+
+![](Capture_3.png)
+
+![](Capture_4.png)
