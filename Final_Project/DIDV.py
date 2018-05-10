@@ -194,7 +194,7 @@ def TwoPoleAdmittancePriors(freq, Rl, R0, beta, l, L, tau0):
     return (1.0/dVdI)
 
 
-def YDI(x, A, B, C, tau1, tau2, tau3, sgAmp, Rsh, sgFreq, dutycycle):
+def ConvolveDIDV(x, A, B, C, tau1, tau2, tau3, sgAmp, Rsh, sgFreq, dutycycle):
     """Function to convert the fitted TES parameters for the complex impedance to a TES response to a square wave jitter in time domain.
     
     Args:
@@ -317,7 +317,7 @@ def GuessDIDVParams(trace, traceTopSlope, sgAmp, Rsh, L0=1.0e-7):
 
     return A0, B0, tau10, tau20, isLoopGainSub1
 
-def FitYFreq(freq, dIdV, yerr=None, A0=0.25, B0=-0.6, C0=-0.6, tau10=-1.0/(2*pi*5e2), tau20=1.0/(2*pi*1e5), tau30=0.0, dt=-10.0e-6, poles=2):
+def FitDIDV(freq, dIdV, yerr=None, A0=0.25, B0=-0.6, C0=-0.6, tau10=-1.0/(2*pi*5e2), tau20=1.0/(2*pi*1e5), tau30=0.0, dt=-10.0e-6, poles=2):
     """Function to find the fit parameters for either the 1-pole (A, tau2, dt), 2-pole (A, B, tau1, tau2, dt), or 3-pole (A, B, C, tau1, tau2, tau3, dt) fit. 
     
     Args:
@@ -527,7 +527,7 @@ def ConvertToTESValues(popt, pcov, R0, Rl, dR0=0.001, dRl=0.001):
 
     return popt_out, pcov_out
 
-def FitYFreqPriors(freq, dIdV, priors, invpriorsCov, yerr=None, Rl=0.35, R0=0.130, beta=0.5, l=10.0, L=500.0e-9, tau0=500.0e-6, dt=-10.0e-6):
+def FitDIDVPriors(freq, dIdV, priors, invpriorsCov, yerr=None, Rl=0.35, R0=0.130, beta=0.5, l=10.0, L=500.0e-9, tau0=500.0e-6, dt=-10.0e-6):
     """Function to directly fit Irwin's TES parameters (Rl, R0, beta, l, L, tau0, dt) with the knowledge of prior known values any number of the parameters. In order for the degeneracy of the parameters to be broken, at least 2 fit parameters should have priors knowledge. This is usually Rl and R0, as these can be known from IV data.
     
     Args:
@@ -994,16 +994,16 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
         A0, B0, tau10, tau20, isLoopGainSub1 = GuessDIDVParams(tmean, tmean[flatInds], sgAmp, Rsh, L0=1.0e-7)
         
         # 1 pole fitting
-        v1, s1, cost1 = FitYFreq(fdIdV, dIdV, yerr=sdIdV, A0=A0_1pole, tau20=tau20_1pole, dt=dt0, poles=1)
-        yFit1 = YDI(timeArray, v1[0], 0.0, 0.0, 0.0, v1[1], 0.0, sgAmp, Rsh, sgFreq, dutycycle)+offset
+        v1, s1, cost1 = FitDIDV(fdIdV, dIdV, yerr=sdIdV, A0=A0_1pole, tau20=tau20_1pole, dt=dt0, poles=1)
+        yFit1 = ConvolveDIDV(timeArray, v1[0], 0.0, 0.0, 0.0, v1[1], 0.0, sgAmp, Rsh, sgFreq, dutycycle)+offset
         
         # 2 pole fitting
-        v2, s2, cost2 = FitYFreq(fdIdV, dIdV, yerr=sdIdV, A0=A0, B0=B0, tau10=tau10, tau20=tau20, dt=dt0, poles=2)
-        yFit2 = YDI(timeArray, v2[0], v2[1], 0.0, v2[2], v2[3], 0.0, sgAmp, Rsh, sgFreq, dutycycle)+offset
+        v2, s2, cost2 = FitDIDV(fdIdV, dIdV, yerr=sdIdV, A0=A0, B0=B0, tau10=tau10, tau20=tau20, dt=dt0, poles=2)
+        yFit2 = ConvolveDIDV(timeArray, v2[0], v2[1], 0.0, v2[2], v2[3], 0.0, sgAmp, Rsh, sgFreq, dutycycle)+offset
         
         # 3 pole fitting
-        v3, s3, cost3 = FitYFreq(fdIdV, dIdV, yerr=sdIdV, A0=v2[0], B0=-abs(v2[1]), C0=-0.01, tau10=-abs(v2[2]), tau20=v2[3], tau30=1.0e-4, dt=v2[4], poles=3)
-        yFit3 = YDI(timeArray, v3[0], v3[1], v3[2], v3[3], v3[4], v3[5], sgAmp, Rsh, sgFreq, dutycycle)+offset
+        v3, s3, cost3 = FitDIDV(fdIdV, dIdV, yerr=sdIdV, A0=v2[0], B0=-abs(v2[1]), C0=-0.01, tau10=-abs(v2[2]), tau20=v2[3], tau30=1.0e-4, dt=v2[4], poles=3)
+        yFit3 = ConvolveDIDV(timeArray, v3[0], v3[1], v3[2], v3[3], v3[4], v3[5], sgAmp, Rsh, sgFreq, dutycycle)+offset
         
         # Convert parameters from 1 and 2 pole fits to the Irwin parameters
         popt_out1, pcov_out1 = ConvertToTESValues(v1, s1, R0, Rl, dR0=dR0, dRl=dRp) # 1 pole params (Rtot,L,R0,Rl,dt)
@@ -1022,7 +1022,7 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
             tau0 = abs(popt_out2[5])
             
             # 2 pole fitting
-            v2priors, s2priors, costPriors = FitYFreqPriors(fdIdV, dIdV, priors, invpriorsCov, yerr=sdIdV, R0=abs(R0), Rl=abs(Rl), beta=beta0, l=l0, L=L0, tau0=tau0, dt=popt_out2[6])
+            v2priors, s2priors, costPriors = FitDIDVPriors(fdIdV, dIdV, priors, invpriorsCov, yerr=sdIdV, R0=abs(R0), Rl=abs(Rl), beta=beta0, l=l0, L=L0, tau0=tau0, dt=popt_out2[6])
             
             # convert answer back to A, B, tauI, tauEL basis for plotting
             v2priorsConv = ConvertFromTESValues(v2priors, s2priors)[0]
@@ -1031,7 +1031,7 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
             TwoPoleFallTimesPriors = FindPoleFallTimes(v2priorsConv)
             
             # save the fits with priors in time and frequency domain
-            yFit2priors = YDI(timeArray, v2priorsConv[0], v2priorsConv[1], 0.0, v2priorsConv[2], v2priorsConv[3], 0.0, sgAmp, Rsh, sgFreq, dutycycle)+offset
+            yFit2priors = ConvolveDIDV(timeArray, v2priorsConv[0], v2priorsConv[1], 0.0, v2priorsConv[2], v2priorsConv[3], 0.0, sgAmp, Rsh, sgFreq, dutycycle)+offset
             dIdVFit2priors = TwoPoleAdmittancePriors(fdIdV, v2priors[0], v2priors[1], v2priors[2], v2priors[3], v2priors[4], v2priors[5]) * np.exp(-2.0j*pi*fdIdV*v2priors[6])
         else:
             # set the priors variables to None
