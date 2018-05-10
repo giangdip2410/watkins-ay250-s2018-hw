@@ -1015,6 +1015,7 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
     
     #store results
     tmean = np.mean(traces,axis=0)
+    fdIdV = np.copy(fdIdVi)
     
     # divide by sqrt(N) for standard deviation of mean
     sdIdV = stdComplex(dIdVs)/np.sqrt(nTraces)
