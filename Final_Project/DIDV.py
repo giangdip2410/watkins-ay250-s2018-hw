@@ -1337,27 +1337,9 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
         fig.savefig(pathSave+'dIdV_Slope'+fileStr+'.png')
         plt.close(fig)
         
-        ## plot the trace and fits in frequency domain in the complex plane
-        fig,ax=plt.subplots(figsize=(8,6))
-        
-        dVdI,sdVdI = InvertComplexError(dIdV,sdIdV)
-        sToNZ=dVdI/sdVdI
-        inds=np.abs(sToNZ) > 2.0 ## don't plot points with huge errors
-
-        ax.errorbar(np.real(dVdI[inds]), np.imag(dVdI[inds]), xerr=np.real(sdVdI[inds]), yerr=np.imag(sdVdI[inds]), color='black', linestyle='None')
-        if(fit):
-            ax.plot(np.real(1.0/dIdVFit2[inds]),np.imag(1.0/dIdVFit2[inds]),color='green',label='x(f) 2-pole fit')
-            ax.plot(np.real(1.0/dIdVFit3[inds]),np.imag(1.0/dIdVFit3[inds]),color='orange',label='x(f) 3-pole fit')
-            if priors is not None:
-                ax.plot(np.real(1.0/dIdVFit2priors[inds]),np.imag(1.0/dIdVFit2priors[inds]),'-',color='cyan',label='x(f) 2-pole fit with priors')
-        ax.set_xlabel('Real(Z)')
-        ax.set_ylabel('Imag(Z)')
-        ax.legend(loc='upper left')
-        ax.set_title(fileStr)
-        ax.grid(linestyle='dotted')
-        ax.tick_params(which='both',direction='in',right='on',top='on')
-        fig.savefig(pathSave+'dVdI_RealvImag'+fileStr+'.png')
-        plt.close(fig)
+        ## don't plot points with huge errors
+        frac_err=sdIdV/dIdV
+        plotInds=np.abs(1/frac_err) > 2.0 
         
         ## plot the real part of the dI/dV in frequency domain
         fig,ax=plt.subplots(figsize=(10,6))
@@ -1366,11 +1348,11 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
         ax.plot(fFit[fFit>0],np.real(dIdVFit3)[fFit>0],color='orange',label='x(f) 3-pole fit',zorder=8)
         if priors is not None:
             ax.plot(fFit[fFit>0],np.real(dIdVFit2priors)[fFit>0],color='cyan',label='x(f) 2-pole fit with priors',zorder=9)
-        ax.scatter(fdIdV[inds][fdIdV[inds]>0],np.real(dIdV[inds])[fdIdV[inds]>0],color='blue',label='x(f) mean',s=5,zorder=2)
+        ax.scatter(fdIdV[plotInds][fdIdV[plotInds]>0],np.real(dIdV[plotInds])[fdIdV[plotInds]>0],color='blue',label='x(f) mean',s=5,zorder=2)
         
         ## plot error in real part of dIdV
-        ax.plot(fdIdV[inds][fdIdV[inds]>0],np.real(dIdV[inds]+sdIdV[inds])[fdIdV[inds]>0],color='black',label='x(f) 1-$\sigma$ bounds',alpha=0.1,zorder=1)
-        ax.plot(fdIdV[inds][fdIdV[inds]>0],np.real(dIdV[inds]-sdIdV[inds])[fdIdV[inds]>0],color='black',alpha=0.1,zorder=1)
+        ax.plot(fdIdV[plotInds][fdIdV[plotInds]>0],np.real(dIdV[plotInds]+sdIdV[plotInds])[fdIdV[plotInds]>0],color='black',label='x(f) 1-$\sigma$ bounds',alpha=0.1,zorder=1)
+        ax.plot(fdIdV[plotInds][fdIdV[plotInds]>0],np.real(dIdV[plotInds]-sdIdV[plotInds])[fdIdV[plotInds]>0],color='black',alpha=0.1,zorder=1)
         
         ax.set_xlabel('Frequency (Hz)')
         ax.set_ylabel('Re($dI/dV$) ($\Omega^{-1}$)')
@@ -1393,11 +1375,11 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
         ax.plot(fFit[fFit>0],np.imag(dIdVFit3)[fFit>0],color='orange',label='x(f) 3-pole fit',zorder=8)
         if priors is not None:
             ax.plot(fFit[fFit>0],np.imag(dIdVFit2priors)[fFit>0],color='cyan',label='x(f) 2-pole fit with priors',zorder=9)
-        ax.scatter(fdIdV[inds][fdIdV[inds]>0],np.imag(dIdV[inds])[fdIdV[inds]>0],color='blue',label='x(f) mean',s=5,zorder=2)
+        ax.scatter(fdIdV[plotInds][fdIdV[plotInds]>0],np.imag(dIdV[plotInds])[fdIdV[plotInds]>0],color='blue',label='x(f) mean',s=5,zorder=2)
         
         ## plot error in imaginary part of dIdV
-        ax.plot(fdIdV[inds][fdIdV[inds]>0],np.imag(dIdV[inds]+sdIdV[inds])[fdIdV[inds]>0],color='black',label='x(f) 1-$\sigma$ bounds',alpha=0.1,zorder=1)
-        ax.plot(fdIdV[inds][fdIdV[inds]>0],np.imag(dIdV[inds]-sdIdV[inds])[fdIdV[inds]>0],color='black',alpha=0.1,zorder=1)
+        ax.plot(fdIdV[plotInds][fdIdV[plotInds]>0],np.imag(dIdV[plotInds]+sdIdV[plotInds])[fdIdV[plotInds]>0],color='black',label='x(f) 1-$\sigma$ bounds',alpha=0.1,zorder=1)
+        ax.plot(fdIdV[plotInds][fdIdV[plotInds]>0],np.imag(dIdV[plotInds]-sdIdV[plotInds])[fdIdV[plotInds]>0],color='black',alpha=0.1,zorder=1)
         
         ax.set_xlabel('Frequency (Hz)')
         ax.set_ylabel('Im($dI/dV$) ($\Omega^{-1}$)')
