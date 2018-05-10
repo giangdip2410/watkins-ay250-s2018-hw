@@ -1276,9 +1276,11 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
         ## histogram of the slopes
         fig, ax = plt.subplots(figsize=(10,6))
         ts=np.array(slopes)*1e6
-        ax.hist(slopes*1e6, bins=200, range=(-10, 10), log=True, histtype='step', label='Top', color='green')
+        topSlope=np.max(slopes*1e6)
+        botSlope=np.min(slopes*1e6)
+        ax.hist(slopes*1e6, bins=200, range=(botSlope, topSlope), log=True, histtype='step', label='Top', color='green')
         if(autoCut):
-            ax.hist(slopes_all*1e6, bins=200, range=(-10, 10), log=True, histtype='step', label='Top', color='black')
+            ax.hist(slopes_all*1e6, bins=200, range=(botSlope, topSlope), log=True, histtype='step', label='Top', color='black')
         ax.set_xlabel('Slope ($\mu$A/s)')
         ax.set_title(fileStr)
         ax.grid(linestyle='dotted')
