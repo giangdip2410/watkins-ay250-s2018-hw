@@ -1,15 +1,15 @@
 import numpy as np
 from numpy import pi
-from scipy.optimize import least_squares,fsolve
+from scipy.optimize import least_squares, fsolve
 from scipy.fftpack import fft, ifft, fftfreq
 from scipy.stats import skew
 import h5py
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from General import autoCuts
-from itertools import izip,repeat
+from itertools import izip, repeat
 
-def stdComplex(x,axis=0):
+def stdComplex(x, axis=0):
     """Function to return complex standard deviation (individually computed for real and imaginary components) for an array of complex values.
     
     Args:
@@ -19,12 +19,12 @@ def stdComplex(x,axis=0):
     Returns:
         std_complex: The complex standard deviation of the inputted array, along the specified axis.
     """
-    rstd=np.std(x.real,axis=axis)
-    istd=np.std(x.imag,axis=axis)
+    rstd = np.std(x.real, axis=axis)
+    istd = np.std(x.imag, axis=axis)
     std_complex = rstd+1.0j*istd
     return std_complex
 
-def slope(x,y,removeMeans=True):
+def slope(x, y, removeMeans=True):
     """Computes the maximum likelihood slope of a set of x and y points
     
     Args:
@@ -45,7 +45,7 @@ def slope(x,y,removeMeans=True):
 
     return np.sum(xTemp*yTemp)/np.sum(xTemp**2)
     
-def OnePoleImpedance(freq,A,tau2):
+def OnePoleImpedance(freq, A, tau2):
     """Function to calculate the impedance (dVdI) of a TES with the 1-pole fit
     
     Args:
@@ -58,10 +58,10 @@ def OnePoleImpedance(freq,A,tau2):
     
     """
     
-    dVdI=(A*(1.0+2.0j*pi*freq*tau2))
+    dVdI = (A*(1.0+2.0j*pi*freq*tau2))
     return dVdI
 
-def OnePoleAdmittance(freq,A,tau2):
+def OnePoleAdmittance(freq, A, tau2):
     """Function to calculate the admittance (dIdV) of a TES with the 1-pole fit
     
     Args:
@@ -74,10 +74,10 @@ def OnePoleAdmittance(freq,A,tau2):
     
     """
     
-    dVdI=OnePoleImpedance(freq,A,tau2)
+    dVdI = OnePoleImpedance(freq, A, tau2)
     return (1.0/dVdI)
 
-def TwoPoleImpedance(freq,A,B,tau1,tau2):
+def TwoPoleImpedance(freq, A, B, tau1, tau2):
     """Function to calculate the impedance (dVdI) of a TES with the 2-pole fit
     
     Args:
@@ -92,10 +92,10 @@ def TwoPoleImpedance(freq,A,B,tau1,tau2):
     
     """
     
-    dVdI=(A*(1.0+2.0j*pi*freq*tau2))+(B/(1.0+2.0j*pi*freq*tau1))
+    dVdI = (A*(1.0+2.0j*pi*freq*tau2))+(B/(1.0+2.0j*pi*freq*tau1))
     return dVdI
 
-def TwoPoleAdmittance(freq,A,B,tau1,tau2):
+def TwoPoleAdmittance(freq, A, B, tau1, tau2):
     """Function to calculate the admittance (dIdV) of a TES with the 2-pole fit
     
     Args:
@@ -110,10 +110,10 @@ def TwoPoleAdmittance(freq,A,B,tau1,tau2):
     
     """
     
-    dVdI=TwoPoleImpedance(freq,A,B,tau1,tau2)
+    dVdI = TwoPoleImpedance(freq, A, B, tau1, tau2)
     return (1.0/dVdI)
 
-def ThreePoleImpedance(freq,A,B,C,tau1,tau2,tau3):
+def ThreePoleImpedance(freq, A, B, C, tau1, tau2, tau3):
     """Function to calculate the impedance (dVdI) of a TES with the 3-pole fit
     
     Args:
@@ -130,10 +130,10 @@ def ThreePoleImpedance(freq,A,B,C,tau1,tau2,tau3):
     
     """
     
-    dVdI=(A*(1.0+2.0j*pi*freq*tau2))+(B/(1.0+2.0j*pi*freq*tau1-C/(1.0+2.0j*pi*freq*tau3)))
+    dVdI = (A*(1.0+2.0j*pi*freq*tau2))+(B/(1.0+2.0j*pi*freq*tau1-C/(1.0+2.0j*pi*freq*tau3)))
     return dVdI
 
-def ThreePoleAdmittance(freq,A,B,C,tau1,tau2,tau3):
+def ThreePoleAdmittance(freq, A, B, C, tau1, tau2, tau3):
     """Function to calculate the admittance (dIdV) of a TES with the 3-pole fit
     
     Args:
@@ -150,10 +150,10 @@ def ThreePoleAdmittance(freq,A,B,C,tau1,tau2,tau3):
     
     """
     
-    dVdI=ThreePoleImpedance(freq,A,B,C,tau1,tau2,tau3)
+    dVdI = ThreePoleImpedance(freq, A, B, C, tau1, tau2, tau3)
     return (1.0/dVdI)
 
-def TwoPoleImpedancePriors(freq,Rl,R0,beta,l,L,tau0):
+def TwoPoleImpedancePriors(freq, Rl, R0, beta, l, L, tau0):
     """Function to calculate the impedance (dVdI) of a TES with the 2-pole fit from Irwin's TES parameters
     
     Args:
@@ -170,10 +170,10 @@ def TwoPoleImpedancePriors(freq,Rl,R0,beta,l,L,tau0):
     
     """
     
-    dVdI= Rl + R0*(1.0+beta) + 2.0j*pi*freq*L + R0 * l * (2.0+beta)/(1.0-l) * 1.0/(1.0+2.0j*freq*pi*tau0/(1.0-l))
+    dVdI = Rl + R0*(1.0+beta) + 2.0j*pi*freq*L + R0 * l * (2.0+beta)/(1.0-l) * 1.0/(1.0+2.0j*freq*pi*tau0/(1.0-l))
     return dVdI
 
-def TwoPoleAdmittancePriors(freq,Rl,R0,beta,l,L,tau0):
+def TwoPoleAdmittancePriors(freq, Rl, R0, beta, l, L, tau0):
     """Function to calculate the admittance (dIdV) of a TES with the 2-pole fit from Irwin's TES parameters
     
     Args:
@@ -190,11 +190,11 @@ def TwoPoleAdmittancePriors(freq,Rl,R0,beta,l,L,tau0):
     
     """
     
-    dVdI=TwoPoleImpedancePriors(freq,Rl,R0,beta,l,L,tau0)
+    dVdI = TwoPoleImpedancePriors(freq, Rl, R0, beta, l, L, tau0)
     return (1.0/dVdI)
 
 
-def YDI(x,A,B,C,tau1,tau2,tau3,sgAmp,Rsh,sgFreq,dutycycle):
+def YDI(x, A, B, C, tau1, tau2, tau3, sgAmp, Rsh, sgFreq, dutycycle):
     """Function to convert the fitted TES parameters for the complex impedance to a TES response to a square wave jitter in time domain.
     
     Args:
@@ -216,24 +216,24 @@ def YDI(x,A,B,C,tau1,tau2,tau3,sgAmp,Rsh,sgFreq,dutycycle):
     
     """
     
-    tracelength=len(x)
+    tracelength = len(x)
     
     # get the frequencies for a DFT, based on the sample rate of the data
-    dx=x[1]-x[0]
-    freq=fftfreq(len(x),d=dx)
+    dx = x[1]-x[0]
+    freq = fftfreq(len(x), d=dx)
     
     # dIdV of fit in frequency space
-    ci = ThreePoleAdmittance(freq,A,B,C,tau1,tau2,tau3)
+    ci = ThreePoleAdmittance(freq, A, B, C, tau1, tau2, tau3)
 
     # analytic DFT of a duty cycled square wave
     Sf = np.zeros_like(freq)*0.0j
     
     # even frequencies are zero unless the duty cycle is not 0.5
     if (dutycycle==0.5):
-        oddInds = ((np.abs(np.mod(np.absolute(freq/sgFreq),2)-1))<1e-8) #due to float precision, np.mod will have errors on the order of 1e-10 for large numbers, thus we set a bound on the error (1e-8)
+        oddInds = ((np.abs(np.mod(np.absolute(freq/sgFreq), 2)-1))<1e-8) #due to float precision, np.mod will have errors on the order of 1e-10 for large numbers, thus we set a bound on the error (1e-8)
         Sf[oddInds] = 1.0j/(pi*freq[oddInds]/sgFreq)*sgAmp*Rsh*tracelength
     else:
-        oddInds = ((np.abs(np.mod(np.abs(freq/sgFreq),2)-1))<1e-8) #due to float precision, np.mod will have errors on the order of 1e-10 for large numbers, thus we set a bound on the error (1e-8)
+        oddInds = ((np.abs(np.mod(np.abs(freq/sgFreq), 2)-1))<1e-8) #due to float precision, np.mod will have errors on the order of 1e-10 for large numbers, thus we set a bound on the error (1e-8)
         Sf[oddInds] = -1.0j/(2.0*pi*freq[oddInds]/sgFreq)*sgAmp*Rsh*tracelength*(np.exp(-2.0j*pi*freq[oddInds]/sgFreq*dutycycle)-1)
         
         evenInds = ((np.abs(np.mod(np.abs(freq/sgFreq)+1,2)-1))<1e-8) #due to float precision, np.mod will have errors on the order of 1e-10 for large numbers, thus we set a bound on the error (1e-8)
@@ -248,7 +248,7 @@ def YDI(x,A,B,C,tau1,tau2,tau3,sgAmp,Rsh,sgFreq,dutycycle):
 
     return np.real(St)
 
-def SquareWaveGuessParams(trace,sgAmp,Rsh):
+def SquareWaveGuessParams(trace, sgAmp, Rsh):
     """Function to guess the fit parameters for the 1-pole fit.
     
     Args:
@@ -265,9 +265,9 @@ def SquareWaveGuessParams(trace,sgAmp,Rsh):
     dIs = max(trace) - min(trace)
     A0 = sgAmp*Rsh/dIs
     tau20 = 1.0e-6
-    return A0,tau20
+    return A0, tau20
 
-def GuessDIDVParams(trace,traceTopSlope,sgAmp,Rsh,L0=1.0e-7):
+def GuessDIDVParams(trace, traceTopSlope, sgAmp, Rsh, L0=1.0e-7):
     """Function to find the fit parameters for either the 1-pole (A, tau2, dt), 2-pole (A, B, tau1, tau2, dt), or 3-pole (A, B, C, tau1, tau2, tau3, dt) fit. 
     
     Args:
@@ -315,9 +315,9 @@ def GuessDIDVParams(trace,traceTopSlope,sgAmp,Rsh,L0=1.0e-7):
         B0 = -1.0/dIdV0 - A0
         tau10 = -100e-7 # guess a faster tauI
 
-    return A0,B0,tau10,tau20,isLoopGainSub1
+    return A0, B0, tau10, tau20, isLoopGainSub1
 
-def FitYFreq(freq,dIdV,yerr=None,A0=0.25,B0=-0.6,C0=-0.6,tau10=-1.0/(2*pi*5e2),tau20=1.0/(2*pi*1e5),tau30=0.0,dt=-10.0e-6,poles=2):
+def FitYFreq(freq, dIdV, yerr=None, A0=0.25, B0=-0.6, C0=-0.6, tau10=-1.0/(2*pi*5e2), tau20=1.0/(2*pi*1e5), tau30=0.0, dt=-10.0e-6, poles=2):
     """Function to find the fit parameters for either the 1-pole (A, tau2, dt), 2-pole (A, B, tau1, tau2, dt), or 3-pole (A, B, C, tau1, tau2, tau3, dt) fit. 
     
     Args:
@@ -340,80 +340,79 @@ def FitYFreq(freq,dIdV,yerr=None,A0=0.25,B0=-0.6,C0=-0.6,tau10=-1.0/(2*pi*5e2),t
         
     """
     
-    if(poles==1):
+    if (poles==1):
         # assume the square wave is not inverted
-        p0=(A0,tau20,dt)
-        bounds1=((0.0,0.0,-1.0e-3),(np.inf,np.inf,1.0e-3))
+        p0 = (A0, tau20, dt)
+        bounds1 = ((0.0, 0.0, -1.0e-3),(np.inf, np.inf, 1.0e-3))
         # assume the square wave is inverted
-        p02=(-A0,tau20,dt)
-        bounds2=((-np.inf,0.0,-1.0e-3),(0.0,np.inf,1.0e-3))
-    elif(poles==2):
+        p02 = (-A0, tau20, dt)
+        bounds2 = ((-np.inf, 0.0, -1.0e-3),(0.0, np.inf, 1.0e-3))
+    elif (poles==2):
         # assume loop gain > 1, where B<0 and tauI<0
-        p0=(A0,B0,tau10,tau20,dt)
-        bounds1=((0.0,-np.inf,-np.inf,0.0,-1.0e-3),(np.inf,0.0,0.0,np.inf,1.0e-3))
+        p0 = (A0, B0, tau10, tau20, dt)
+        bounds1 = ((0.0, -np.inf, -np.inf, 0.0, -1.0e-3),(np.inf, 0.0, 0.0, np.inf, 1.0e-3))
         # assume loop gain < 1, where B>0 and tauI>0
-        p02=(A0,-B0,-tau10,tau20,dt)
-        bounds2=((0.0,0.0,0.0,0.0,-1.0e-3),(np.inf,np.inf,np.inf,np.inf,1.0e-3))
-    elif(poles==3):
+        p02 = (A0, -B0, -tau10, tau20, dt)
+        bounds2 = ((0.0, 0.0, 0.0, 0.0, -1.0e-3),(np.inf, np.inf, np.inf, np.inf, 1.0e-3))
+    elif (poles==3):
         # assume loop gain > 1, where B<0 and tauI<0
-        p0=(A0,B0,C0,tau10,tau20,tau30,dt)
-        bounds1=((0.0,-np.inf,-np.inf,-np.inf,0.0,0.0,-1.0e-3),(np.inf,0.0,0.0,0.0,np.inf,np.inf,1.0e-3))
+        p0 = (A0, B0, C0, tau10, tau20, tau30, dt)
+        bounds1 = ((0.0, -np.inf, -np.inf, -np.inf, 0.0, 0.0, -1.0e-3),(np.inf, 0.0, 0.0, 0.0, np.inf, np.inf, 1.0e-3))
         # assume loop gain < 1, where B>0 and tauI>0
-        p02=(A0,-B0,-C0,-tau10,tau20,tau30,dt)
-        bounds2=((0.0,0.0,0.0,0.0,0.0,0.0,-1.0e-3),(np.inf,np.inf,np.inf,np.inf,np.inf,np.inf,1.0e-3))
+        p02 = (A0, -B0, -C0, -tau10, tau20, tau30, dt)
+        bounds2 = ((0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0e-3),(np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, 1.0e-3))
         
     def residual(params):
         # define a residual for the nonlinear least squares algorithm 
-        fZ=freq
         # different functions for different amounts of poles
-        if(poles==1):
-            A,tau2,dt=params
-            ci=OnePoleAdmittance(fZ,A,tau2) * np.exp(-2.0j*pi*fZ*dt)
+        if (poles==1):
+            A, tau2, dt = params
+            ci = OnePoleAdmittance(freq, A, tau2) * np.exp(-2.0j*pi*freq*dt)
         elif(poles==2):
-            A,B,tau1,tau2,dt=params
-            ci=TwoPoleAdmittance(fZ,A,B,tau1,tau2) * np.exp(-2.0j*pi*fZ*dt)
+            A, B, tau1, tau2, dt = params
+            ci = TwoPoleAdmittance(freq, A, B, tau1, tau2) * np.exp(-2.0j*pi*freq*dt)
         elif(poles==3):
-            A,B,C,tau1,tau2,tau3,dt=params
-            ci=ThreePoleAdmittance(fZ,A,B,C,tau1,tau2,tau3) * np.exp(-2.0j*pi*fZ*dt)
+            A, B, C, tau1, tau2, tau3, dt = params
+            ci = ThreePoleAdmittance(freq, A, B, C, tau1, tau2, tau3) * np.exp(-2.0j*pi*freq*dt)
         
         # the difference between the data and the fit
-        diff=dIdV-ci
+        diff = dIdV-ci
         # get the weights from yerr, these should be 1/(standard deviation) for real and imaginary parts
-        if(yerr is None):
-            weights=1.0+1.0j
+        if (yerr is None):
+            weights = 1.0+1.0j
         else:
-            weights=1.0/yerr.real+1.0j/yerr.imag
+            weights = 1.0/yerr.real+1.0j/yerr.imag
         # create the residual vector, splitting up real and imaginary parts of the residual separately
-        z1d = np.zeros(fZ.size*2, dtype = np.float64)
+        z1d = np.zeros(freq.size*2, dtype=np.float64)
         z1d[0:z1d.size:2] = diff.real*weights.real
         z1d[1:z1d.size:2] = diff.imag*weights.imag
         return z1d
 
     # res1 assumes loop gain > 1, where B<0 and tauI<0
-    res1=least_squares(residual, p0, bounds=bounds1, loss='linear', max_nfev=1000, verbose=0, x_scale=np.abs(p0))
+    res1 = least_squares(residual, p0, bounds=bounds1, loss='linear', max_nfev=1000, verbose=0, x_scale=np.abs(p0))
     # res2 assumes loop gain < 1, where B>0 and tauI>0
-    res2=least_squares(residual, p02, bounds=bounds2, loss='linear', max_nfev=1000, verbose=0, x_scale=np.abs(p0))
+    res2 = least_squares(residual, p02, bounds=bounds2, loss='linear', max_nfev=1000, verbose=0, x_scale=np.abs(p0))
     
     # check which loop gain casez gave the better fit
-    if(res1['cost'] < res2['cost']):
-        res=res1
+    if (res1['cost'] < res2['cost']):
+        res = res1
     else:
-        res=res2
+        res = res2
         
-    popt=res['x']
-    cost=res['cost']
+    popt = res['x']
+    cost = res['cost']
         
     # check if the fit failed (usually only happens when we reach maximum evaluations, likely when fitting assuming the wrong loop gain)
-    if(not res1['success'] and not res2['success']):
+    if (not res1['success'] and not res2['success']):
         print("Fit failed: "+str(res1['status'])+", "+str(poles)+"-pole Fit")
         
     # take matrix product of transpose of jac and jac, take the inverse to get the analytic covariance matrix
-    pcovinv = np.dot(res["jac"].transpose(),res["jac"])
+    pcovinv = np.dot(res["jac"].transpose(), res["jac"])
     pcov = np.linalg.inv(pcovinv)
     
     return popt,pcov,cost
 
-def ConvertToTESValues(popt,pcov,R0,Rl,dR0=0.001,dRl=0.001,poles=2):
+def ConvertToTESValues(popt, pcov, R0, Rl, dR0=0.001, dRl=0.001):
     """Function to convert the fit parameters for either 1-pole (A, tau2, dt), 2-pole (A, B, tau1, tau2, dt), or 3-pole (A, B, C, tau1, tau2, tau3, dt) fit to the corresponding TES parameters: 1-pole (Rtot, L, R0, Rl, dt), 2-pole (Rl, R0, beta, l, L, tau0, dt), and 3-pole (no conversion done).
     
     Args:
@@ -423,7 +422,6 @@ def ConvertToTESValues(popt,pcov,R0,Rl,dR0=0.001,dRl=0.001,poles=2):
         Rl: The load resistance of the TES circuit (in Ohms)
         dR0: The error in the R0 value (in Ohms)
         dRl: The error in the Rl value (in Ohms)
-        poles: The fit that we will convert the parameters to (I should change this to be automatically known from length of popt)
         
     Returns:
         popt_out: The TES parameters for the specified fit
@@ -431,10 +429,10 @@ def ConvertToTESValues(popt,pcov,R0,Rl,dR0=0.001,dRl=0.001,poles=2):
         
     """
     
-    if(poles==1):
+    if len(popt)==3:
         ## one pole
         # extract fit parameters
-        A  = popt[0]
+        A = popt[0]
         tau2 = popt[1]
         dt = popt[2]
         
@@ -442,7 +440,7 @@ def ConvertToTESValues(popt,pcov,R0,Rl,dR0=0.001,dRl=0.001,poles=2):
         Rtot = A
         L = A*tau2
         
-        popt_out = [Rtot,L,R0,Rl,dt]
+        popt_out = np.array([Rtot, L, R0, Rl, dt])
         
         # create new covariance matrix (needs to be the correct size)
         pcov_orig = pcov
@@ -450,7 +448,7 @@ def ConvertToTESValues(popt,pcov,R0,Rl,dR0=0.001,dRl=0.001,poles=2):
         row,col = np.indices((2,2))
         
         # populate the new covariance matrix with the uncertainties in R0, Rl, and dt
-        pcov_in[row,col] = pcov_orig[row,col]
+        pcov_in[row, col] = pcov_orig[row, col]
         vardt = pcov_orig[2,2]
         pcov_in[2,2] = dR0**2
         pcov_in[3,3] = dRl**2
@@ -467,9 +465,9 @@ def ConvertToTESValues(popt,pcov,R0,Rl,dR0=0.001,dRl=0.001,poles=2):
         
         # use the Jacobian to populate the rest of the covariance matrix
         jact = np.transpose(jac)
-        pcov_out = np.dot(jac,np.dot(pcov_in,jact))
+        pcov_out = np.dot(jac, np.dot(pcov_in, jact))
         
-    elif (poles==2):
+    elif len(popt)==5:
         ## two poles
         # extract fit parameters
         A = popt[0]
@@ -477,6 +475,7 @@ def ConvertToTESValues(popt,pcov,R0,Rl,dR0=0.001,dRl=0.001,poles=2):
         tau1 = popt[2]
         tau2 = popt[3]
         dt = popt[4]
+        
         # get covariance matrix for beta, l, L, tau, R0, Rl, dt
         # create new covariance matrix (needs to be the correct size)
         pcov_orig = np.copy(pcov)
@@ -484,7 +483,7 @@ def ConvertToTESValues(popt,pcov,R0,Rl,dR0=0.001,dRl=0.001,poles=2):
         row,col = np.indices((4,4))
 
         # populate the new covariance matrix with the uncertainties in R0, Rl, and dt
-        pcov_in[row,col] = np.copy(pcov_orig[row,col])
+        pcov_in[row, col] = np.copy(pcov_orig[row, col])
         vardt = pcov_orig[4,4]
         pcov_in[4,4] = dRl**2
         pcov_in[5,5] = dR0**2
@@ -495,7 +494,7 @@ def ConvertToTESValues(popt,pcov,R0,Rl,dR0=0.001,dRl=0.001,poles=2):
         l = B/(A+B+R0-Rl)
         L = A*tau2
         tau = tau1 * (A+R0-Rl)/(A+B+R0-Rl)
-        popt_out = [Rl,R0,beta,l,L,tau,dt]
+        popt_out = np.array([Rl,R0,beta,l,L,tau,dt])
         
         # calculate the Jacobian
         jac = np.zeros((7,7))
@@ -519,17 +518,16 @@ def ConvertToTESValues(popt,pcov,R0,Rl,dR0=0.001,dRl=0.001,poles=2):
         
         # use the Jacobian to populate the rest of the covariance matrix
         jact = np.transpose(jac)
-        pcov_out = np.dot(jac,np.dot(pcov_in,jact))
+        pcov_out = np.dot(jac, np.dot(pcov_in, jact))
         
-    elif (poles==3):
-        ##three poles
-        # TODO: convert the 3 pole fit parameters to 3 pole TES parameters
+    elif len(popt)==7:
+        ##three poles (no conversion, since this is just a toy model)
         popt_out = popt
         pcov_out = pcov
 
-    return popt_out,pcov_out
+    return popt_out, pcov_out
 
-def FitYFreqPriors(freq,dIdV,priors,invpriorsCov,yerr=None,Rl=0.35,R0=0.130,beta=0.5,l=10.0,L=500.0e-9,tau0=500.0e-6,dt=-10.0e-6):
+def FitYFreqPriors(freq, dIdV, priors, invpriorsCov, yerr=None, Rl=0.35, R0=0.130, beta=0.5, l=10.0, L=500.0e-9, tau0=500.0e-6, dt=-10.0e-6):
     """Function to directly fit Irwin's TES parameters (Rl, R0, beta, l, L, tau0, dt) with the knowledge of prior known values any number of the parameters. In order for the degeneracy of the parameters to be broken, at least 2 fit parameters should have priors knowledge. This is usually Rl and R0, as these can be known from IV data.
     
     Args:
@@ -553,10 +551,10 @@ def FitYFreqPriors(freq,dIdV,priors,invpriorsCov,yerr=None,Rl=0.35,R0=0.130,beta
         
     """
     
-    p0=(Rl,R0,beta,l,L,tau0,dt)
-    bounds=((0.0,0.0,0.0,0.0,0.0,0.0,-1.0e-3),(np.inf,np.inf,np.inf,np.inf,np.inf,np.inf,1.0e-3))
+    p0 = (Rl, R0, beta, l, L, tau0, dt)
+    bounds=((0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0e-3),(np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, 1.0e-3))
     
-    def residualPriors(params,priors,invpriorsCov):
+    def residualPriors(params, priors, invpriorsCov):
         # priors = prior known values of Rl, R0, beta, l, L, tau0 (2-pole)
         # invpriorsCov = inverse of the covariance matrix of the priors
         
@@ -564,22 +562,21 @@ def FitYFreqPriors(freq,dIdV,priors,invpriorsCov,yerr=None,Rl=0.35,R0=0.130,beta
         return z1dpriors
         
     def residual(params):
-        # define a residual for the nonlinear least squares algorithm 
-        fZ=freq
+        # define a residual for the nonlinear least squares algorithm
         # different functions for different amounts of poles
-        Rl,R0,beta,l,L,tau0,dt=params
-        ci=TwoPoleAdmittancePriors(fZ,Rl,R0,beta,l,L,tau0) * np.exp(-2.0j*pi*fZ*dt)
+        Rl, R0, beta, l, L, tau0, dt=params
+        ci = TwoPoleAdmittancePriors(freq, Rl, R0, beta, l, L, tau0) * np.exp(-2.0j*pi*freq*dt)
         
         # the difference between the data and the fit
-        diff=dIdV-ci
+        diff = dIdV-ci
         # get the weights from yerr, these should be 1/(standard deviation) for real and imaginary parts
         if(yerr is None):
-            weights=1.0+1.0j
+            weights = 1.0+1.0j
         else:
-            weights=1.0/yerr.real+1.0j/yerr.imag
+            weights = 1.0/yerr.real+1.0j/yerr.imag
         
         # create the residual vector, splitting up real and imaginary parts of the residual separately
-        z1d = np.zeros(fZ.size*2+1, dtype = np.float64)
+        z1d = np.zeros(freq.size*2+1, dtype = np.float64)
         z1d[0:z1d.size-1:2] = diff.real*weights.real
         z1d[1:z1d.size-1:2] = diff.imag*weights.imag
         z1d[-1] = residualPriors(params,priors,invpriorsCov)
@@ -636,23 +633,23 @@ def FitYFreqPriors(freq,dIdV,priors,invpriorsCov,yerr=None,Rl=0.35,R0=0.130,beta
         dYddt[0:dYddt.size:2] = np.real(dYddtcomplex)
         dYddt[1:dYddt.size:2] = np.imag(dYddtcomplex)
 
-        jac = np.column_stack((dYdRl,dYdR0,dYdbeta,dYdl,dYdL,dYdtau0,dYddt))
+        jac = np.column_stack((dYdRl, dYdR0, dYdbeta, dYdl, dYdL, dYdtau0, dYddt))
         return jac
 
-    res=least_squares(residual, p0, bounds=bounds, loss='linear', max_nfev=1000, verbose=0, x_scale=np.abs(p0))
+    res = least_squares(residual, p0, bounds=bounds, loss='linear', max_nfev=1000, verbose=0, x_scale=np.abs(p0))
     
-    popt=res['x']
-    cost=res['cost']
+    popt = res['x']
+    cost = res['cost']
     
     # check if the fit failed (usually only happens when we reach maximum evaluations, likely when fitting assuming the wrong loop gain)
-    if(not res['success']):
+    if (not res['success']):
         print('Fit failed: '+str(res['status']))
 
     # analytically calculate the covariance matrix
-    if(yerr is None):
-        weights=1.0+1.0j
+    if (yerr is None):
+        weights = 1.0+1.0j
     else:
-        weights=1.0/yerr.real+1.0j/yerr.imag
+        weights = 1.0/yerr.real+1.0j/yerr.imag
     
     #convert weights to variances (want 1/var, as we are creating the inverse of the covariance matrix)
     weightVals = np.zeros(freq.size*2, dtype = np.float64)
@@ -664,16 +661,16 @@ def FitYFreqPriors(freq,dIdV,priors,invpriorsCov,yerr=None,Rl=0.35,R0=0.130,beta
     wjac = np.zeros_like(jac)
     
     # right multiply inverse of covariance matrix by the jacobian (we do this element by element, to avoid creating a huge covariance matrix)
-    for ii in range(0,len(popt)):
-        wjac[:,ii] = np.multiply(weightVals,jac[:,ii])
+    for ii in range(0, len(popt)):
+        wjac[:,ii] = np.multiply(weightVals, jac[:,ii])
         
     # left multiply by the jacobian and take the inverse to get the analytic covariance matrix
-    pcovinv = np.dot(jact,wjac) + invpriorsCov
+    pcovinv = np.dot(jact, wjac) + invpriorsCov
     pcov = np.linalg.inv(pcovinv)
     
-    return popt,pcov,cost
+    return popt, pcov, cost
 
-def ConvertFromTESValues(popt,pcov):
+def ConvertFromTESValues(popt, pcov):
     """Function to convert from Irwin's TES parameters (Rl, R0, beta, l, L, tau0, dt) to the fit parameters (A, B, tau1, tau2, dt)
     
     Args:
@@ -702,7 +699,7 @@ def ConvertFromTESValues(popt,pcov):
     tau1 = tau0/(1.0-l)
     tau2 = L/(Rl+R0*(1.0+beta))
     
-    popt_out = [A,B,tau1,tau2,dt]
+    popt_out = np.array([A, B, tau1, tau2, dt])
 
     # calculate the Jacobian
     jac = np.zeros((5,7))
@@ -723,10 +720,10 @@ def ConvertFromTESValues(popt,pcov):
 
     # use the Jacobian to populate the rest of the covariance matrix
     jact = np.transpose(jac)
-    pcov_out = np.dot(jac,np.dot(pcov,jact))
+    pcov_out = np.dot(jac, np.dot(pcov, jact))
         
 
-    return popt_out,pcov_out
+    return popt_out, pcov_out
 
 def FindPoleFallTimes(params):
     """Function for taking TES params from a 1-pole, 2-pole, or 3-pole dIdV and calculating the falltimes (i.e. the values of the poles in the complex plane)
@@ -742,35 +739,35 @@ def FindPoleFallTimes(params):
     # convert dVdI time constants to fall times of dIdV
     if len(params)==3:
         # one pole fall time for dIdV is same as tau2=L/R
-        A,tau2,dt = params
+        A, tau2, dt = params
         fallTimes = np.array([tau2])
         
     elif len(params)==5:
         # two pole fall times for dIdV is different than tau1, tau2
-        A,B,tau1,tau2,dt = params
+        A, B, tau1, tau2, dt = params
         
         def TwoPoleEquations(p):
             taup,taum = p
             eq1 = taup+taum - A/(A+B)*(tau1+tau2)
             eq2 = taup*taum-A/(A+B)*tau1*tau2
-            return (eq1,eq2)
+            return (eq1, eq2)
         
-        taup,taum = fsolve(TwoPoleEquations,(tau1,tau2))
-        fallTimes = np.array([taup,taum])
+        taup, taum = fsolve(TwoPoleEquations ,(tau1, tau2))
+        fallTimes = np.array([taup, taum])
         
     elif len(params)==7:
         # three pole fall times for dIdV is different than tau1, tau2, tau3
-        A,B,C,tau1,tau2,tau3,dt = params
+        A, B, C, tau1, tau2, tau3, dt = params
         
         def ThreePoleEquations(p):
-            taup,taum,taun = p
+            taup, taum, taun = p
             eq1 = taup+taum+taun-(A*tau1+A*(1.0-C)*tau2+(A+B)*tau3)/(A*(1.0-C)+B)
             eq2 = taup*taum+taup*taun+taum*taun - (tau1*tau2+tau1*tau3+tau2*tau3)*A/(A*(1.0-C)+B)
             eq3 = taup*taum*taun - tau1*tau2*tau3*A/(A*(1.0-C)+B)
-            return (eq1,eq2,eq3)
+            return (eq1, eq2, eq3)
         
-        taup,taum,taun = fsolve(ThreePoleEquations,(tau1,tau2,tau3))
-        fallTimes = np.array([taup,taum,taun])
+        taup, taum, taun = fsolve(ThreePoleEquations, (tau1, tau2, tau3))
+        fallTimes = np.array([taup, taum, taun])
         
     else:
         print "Wrong number of input parameters, returning zero..."
@@ -779,7 +776,7 @@ def FindPoleFallTimes(params):
     # return fall times sorted from shortest to longest
     return np.sort(fallTimes)
 
-def DeconvolveDIDV(x,trace,Rsh,sgAmp,sgFreq,dutycycle):
+def DeconvolveDIDV(x, trace, Rsh, sgAmp, sgFreq, dutycycle):
     """Function for taking a trace with a known square wave jitter and extracting the complex impedance via deconvolution of the square wave and the TES response in frequency space.
     
     Args:
@@ -797,11 +794,11 @@ def DeconvolveDIDV(x,trace,Rsh,sgAmp,sgFreq,dutycycle):
         
     """
     
-    tracelength=len(x)
+    tracelength = len(x)
     
     # get the frequencies for a DFT, based on the sample rate of the data
-    dx=x[1]-x[0]
-    freq=fftfreq(len(x),d=dx)
+    dx = x[1]-x[0]
+    freq = fftfreq(len(x), d=dx)
     
     # FFT of the trace
     St = fft(trace)
@@ -811,10 +808,10 @@ def DeconvolveDIDV(x,trace,Rsh,sgAmp,sgFreq,dutycycle):
     
     # even frequencies are zero unless the duty cycle is not 0.5
     if (dutycycle==0.5):
-        oddInds = ((np.abs(np.mod(np.absolute(freq/sgFreq),2)-1))<1e-8) #due to float precision, np.mod will have errors on the order of 1e-10 for large numbers, thus we set a bound on the error (1e-8)
+        oddInds = ((np.abs(np.mod(np.absolute(freq/sgFreq), 2)-1))<1e-8) #due to float precision, np.mod will have errors on the order of 1e-10 for large numbers, thus we set a bound on the error (1e-8)
         Sf[oddInds] = 1.0j/(pi*freq[oddInds]/sgFreq)*sgAmp*Rsh*tracelength
     else:
-        oddInds = ((np.abs(np.mod(np.abs(freq/sgFreq),2)-1))<1e-8) #due to float precision, np.mod will have errors on the order of 1e-10 for large numbers, thus we set a bound on the error (1e-8)
+        oddInds = ((np.abs(np.mod(np.abs(freq/sgFreq), 2)-1))<1e-8) #due to float precision, np.mod will have errors on the order of 1e-10 for large numbers, thus we set a bound on the error (1e-8)
         Sf[oddInds] = -1.0j/(2.0*pi*freq[oddInds]/sgFreq)*sgAmp*Rsh*tracelength*(np.exp(-2.0j*pi*freq[oddInds]/sgFreq*dutycycle)-1)
         
         evenInds = ((np.abs(np.mod(np.abs(freq/sgFreq)+1,2)-1))<1e-8) #due to float precision, np.mod will have errors on the order of 1e-10 for large numbers, thus we set a bound on the error (1e-8)
@@ -822,19 +819,19 @@ def DeconvolveDIDV(x,trace,Rsh,sgAmp,sgFreq,dutycycle):
         Sf[evenInds] = -1.0j/(2.0*pi*freq[evenInds]/sgFreq)*sgAmp*Rsh*tracelength*(np.exp(-2.0j*pi*freq[evenInds]/sgFreq*dutycycle)-1)
     
     # the tracelength/2 value from the FFT is purely real, which can cause errors when taking the standard deviation (get stddev = 0 for real part of dIdV at this frequency, leading to a divide by zero when calculating the residual when fitting)
-    Sf[tracelength/2]=0.0j
+    Sf[tracelength/2] = 0.0j
     
     # deconvolve the trace from the square wave to get the dIdV in frequency space
-    dVdI=(Sf/St)
+    dVdI = (Sf/St)
     
     # set values that are within floating point error of zero to 1.0 + 1.0j (we will give these values virtually infinite error, so the value doesn't matter. Setting to 1.0+1.0j avoids divide by zero if we invert)
-    zeroInds=np.abs(dVdI) < 1e-16
-    dVdI[zeroInds]=(1.0+1.0j)
+    zeroInds = np.abs(dVdI) < 1e-16
+    dVdI[zeroInds] = (1.0+1.0j)
     
     # convert to complex admittance
-    dIdV=1.0/dVdI
+    dIdV = 1.0/dVdI
 
-    return freq,dIdV,zeroInds
+    return freq, dIdV, zeroInds
 
 def get_values(trace, flatTimes, flatInds, timeArray, Rsh, sgAmp, sgFreq, dutycycle):
     """Function for getting all relevant parameters of a single trace - range, slope, mean, skewness. Also calculates the complex impedance of the trace.
@@ -858,7 +855,7 @@ def get_values(trace, flatTimes, flatInds, timeArray, Rsh, sgAmp, sgFreq, dutycy
         
     """
     traceRange = max(trace)-min(trace)
-    traceSlope = slope(flatTimes,trace[flatInds])
+    traceSlope = slope(flatTimes, trace[flatInds])
     traceMean = np.mean(trace)
     traceSkewness = skew(trace)
     dIdVi = DeconvolveDIDV(timeArray,trace,Rsh,sgAmp,sgFreq,dutycycle)[1]
@@ -905,43 +902,43 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
     #get number of traces 
     nTraces = len(rawTraces)
     #converting sampling rate to time step
-    dt=(1.0/fs) 
+    dt = (1.0/fs) 
     
     #get trace x values (i.e. time) in seconds
-    bins=np.arange(0,len(rawTraces[0]))
+    bins = np.arange(0, len(rawTraces[0]))
     
     # add half a period of the square wave frequency if add180Phase is True
     if (add180Phase):
         timeOffset = timeOffset + 1/(2*sgFreq)
     
     # apply time offset
-    timeArray=bins*dt-timeOffset
-    indOffset=int(timeOffset*fs)
+    timeArray = bins*dt-timeOffset
+    indOffset = int(timeOffset*fs)
     
     #figure out how many dIdV periods are in the trace, including the time offset
-    period=1.0/sgFreq
+    period = 1.0/sgFreq
     nPeriods = np.floor((max(timeArray)-timeArray[indOffset])/period)
     
     # find which indices to keep in order to have an integer number of periods, as well as the inputted timeoffset
     indMax = int(nPeriods*fs/sgFreq)
-    good_inds = range(indOffset,indMax+indOffset)
+    good_inds = range(indOffset, indMax+indOffset)
     
     # ignore the tail of the trace after the last period, as this tail just adds artifacts to the FFTs
     timeArray = timeArray[good_inds]
-    traces=rawTraces[:,good_inds]/(traceGain) # convert to Amps
+    traces = rawTraces[:,good_inds]/(traceGain) # convert to Amps
 
     #need these x-values to be properly scaled for maximum likelihood slope fitting
-    period_unscaled=fs/sgFreq
+    period_unscaled = fs/sgFreq
     
     #save the  "top slope" points in the trace, which are the points just before the overshoot in the dI/dV
-    flatIndsTemp=list()
-    for i in range(0,int(nPeriods)):
+    flatIndsTemp = list()
+    for i in range(0, int(nPeriods)):
         # get index ranges for flat parts of trace
-        flatIndLow=int((float(i)+0.25)*period_unscaled)
-        flatIndHigh=int((float(i)+0.48)*period_unscaled)
-        flatIndsTemp.append(range(flatIndLow,flatIndHigh))
-    flatInds=np.array(flatIndsTemp).flatten()
-    flatTimes=timeArray[flatInds]
+        flatIndLow = int((float(i)+0.25)*period_unscaled)
+        flatIndHigh = int((float(i)+0.48)*period_unscaled)
+        flatIndsTemp.append(range(flatIndLow, flatIndHigh))
+    flatInds = np.array(flatIndsTemp).flatten()
+    flatTimes = timeArray[flatInds]
     
 #     n_processes = mp.cpu_count()
 #     pool = mp.Pool(processes=n_processes)
@@ -976,16 +973,16 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
 
 
     #for storing results
-    skewnesses=list()
-    means=list()
-    ranges=list()
-    slopes=list()
-    traces=list()
-    dIdVs=list()
+    skewnesses = list()
+    means = list()
+    ranges = list()
+    slopes = list()
+    traces = list()
+    dIdVs = list()
 
     for rawTrace in rawTraces:
         # store all traces, converted to amps, as tt
-        trace=rawTrace[good_inds]/(traceGain) #ignore the tail of the trace after the last period, as this tail just adds artifacts to the FFTs
+        trace = rawTrace[good_inds]/(traceGain) #ignore the tail of the trace after the last period, as this tail just adds artifacts to the FFTs
         
         # store the ranges
         ranges.append(max(trace)-min(trace))
@@ -998,7 +995,7 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
         means.append(np.mean(trace))
         
         # store the skewnesses
-        skewness=skew(trace)
+        skewness = skew(trace)
         skewnesses.append(abs(skewness))
         
         # append the trace to the list of all traces
@@ -1009,79 +1006,74 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
         dIdVs.append(dIdVi)
     
     #convert to numpy structures
-    traces=np.array(traces)
-    dIdVs=np.array(dIdVs)
-    means=np.array(means)
-    skewnesses=np.array(skewnesses)
-    slopes=np.array(slopes)
-    ranges=np.array(ranges)
+    traces = np.array(traces)
+    dIdVs = np.array(dIdVs)
+    means = np.array(means)
+    skewnesses = np.array(skewnesses)
+    slopes = np.array(slopes)
+    ranges = np.array(ranges)
     
     #store results
-    tmean=np.mean(traces,axis=0)
-    fdIdV,dIdV_mean,zeroInds = DeconvolveDIDV(timeArray,tmean,Rsh,sgAmp,sgFreq,dutycycle)
+    tmean = np.mean(traces,axis=0)
     
     # divide by sqrt(N) for standard deviation of mean
-    sdIdV=stdComplex(dIdVs)/np.sqrt(nTraces)
+    sdIdV = stdComplex(dIdVs)/np.sqrt(nTraces)
     sdIdV[zeroInds] = (1.0+1.0j)*1.0e20
-    dIdV=np.mean(dIdVs,axis=0)
+    dIdV = np.mean(dIdVs, axis=0)
     
-    offset=np.mean(means)
-    doffset=np.std(means)/np.sqrt(nTraces)
     
-    Rl=Rp+Rsh # Rload is defined as shunt resistance (Rsh) plus parasitic resistance (Rp)
+    offset = np.mean(means)
+    doffset = np.std(means)/np.sqrt(nTraces)
     
-    if(fit):
+    Rl = Rp+Rsh # Rload is defined as shunt resistance (Rsh) plus parasitic resistance (Rp)
+    
+    if (fit):
         # guess the 1 pole square wave parameters
-        A0_1pole,tau20_1pole = SquareWaveGuessParams(tmean,sgAmp,Rsh)
+        A0_1pole, tau20_1pole = SquareWaveGuessParams(tmean, sgAmp, Rsh)
         
         # Guess the starting parameters for 2 pole fitting
-        A0,B0,tau10,tau20,isLoopGainSub1 = GuessDIDVParams(tmean,tmean[flatInds],sgAmp,Rsh,L0=1.0e-7)
+        A0, B0, tau10, tau20, isLoopGainSub1 = GuessDIDVParams(tmean, tmean[flatInds], sgAmp, Rsh, L0=1.0e-7)
         
         # 1 pole fitting
-        v1,s1,cost1 = FitYFreq(fdIdV,dIdV,yerr=sdIdV,A0=A0_1pole,tau20=tau20_1pole,dt=dt0,poles=1)
-        yFit1 = YDI(timeArray,v1[0],0.0,0.0,0.0,v1[1],0.0,sgAmp,Rsh,sgFreq,dutycycle)+offset
+        v1, s1, cost1 = FitYFreq(fdIdV, dIdV, yerr=sdIdV, A0=A0_1pole, tau20=tau20_1pole, dt=dt0, poles=1)
+        yFit1 = YDI(timeArray, v1[0], 0.0, 0.0, 0.0, v1[1], 0.0, sgAmp, Rsh, sgFreq, dutycycle)+offset
         
         # 2 pole fitting
-        v2,s2,cost2 = FitYFreq(fdIdV,dIdV,yerr=sdIdV,A0=A0,B0=B0,tau10=tau10,tau20=tau20,dt=dt0,poles=2)
-        yFit2 = YDI(timeArray,v2[0],v2[1],0.0,v2[2],v2[3],0.0,sgAmp,Rsh,sgFreq,dutycycle)+offset
+        v2, s2, cost2 = FitYFreq(fdIdV, dIdV, yerr=sdIdV, A0=A0, B0=B0, tau10=tau10, tau20=tau20, dt=dt0, poles=2)
+        yFit2 = YDI(timeArray, v2[0], v2[1], 0.0, v2[2], v2[3], 0.0, sgAmp, Rsh, sgFreq, dutycycle)+offset
         
         # 3 pole fitting
-        v3,s3,cost3 = FitYFreq(fdIdV,dIdV,yerr=sdIdV,A0=v2[0],B0=-abs(v2[1]),C0=-0.01,tau10=-abs(v2[2]),tau20=v2[3],tau30=1.0e-4,dt=v2[4],poles=3)
-        yFit3 = YDI(timeArray,v3[0],v3[1],v3[2],v3[3],v3[4],v3[5],sgAmp,Rsh,sgFreq,dutycycle)+offset
+        v3, s3, cost3 = FitYFreq(fdIdV, dIdV, yerr=sdIdV, A0=v2[0], B0=-abs(v2[1]), C0=-0.01, tau10=-abs(v2[2]), tau20=v2[3], tau30=1.0e-4, dt=v2[4], poles=3)
+        yFit3 = YDI(timeArray, v3[0], v3[1], v3[2], v3[3], v3[4], v3[5], sgAmp, Rsh, sgFreq, dutycycle)+offset
         
         # Convert parameters from 1 and 2 pole fits to the Irwin parameters
-        popt_out1,pcov_out1 = ConvertToTESValues(v1,s1,R0,Rl,dR0=dR0,dRl=dRp,poles=1) # 1 pole params (Rtot,L,R0,Rl,dt)
-        popt_out2,pcov_out2 = ConvertToTESValues(v2,s2,R0,Rl,dR0=dR0,dRl=dRp,poles=2) # 2 pole params (beta, l, L, tau0, R0, Rl, dt)
+        popt_out1, pcov_out1 = ConvertToTESValues(v1, s1, R0, Rl, dR0=dR0, dRl=dRp) # 1 pole params (Rtot,L,R0,Rl,dt)
+        popt_out2, pcov_out2 = ConvertToTESValues(v2, s2, R0, Rl, dR0=dR0, dRl=dRp) # 2 pole params (beta, l, L, tau0, R0, Rl, dt)
         
         # Convert to dIdV falltimes
         OnePoleFallTimes = FindPoleFallTimes(v1)
         TwoPoleFallTimes = FindPoleFallTimes(v2)
         ThreePoleFallTimes = FindPoleFallTimes(v3)
         
-        fFit = fdIdV
-        
         if priors is not None:
-            # convert guesses to Rl, R0, beta, l, L, tau0 basis
-#            guesspriors = ConvertToTESValues([A0,B0,tau10,tau20,1.0e-6],np.diag(np.ones(5)),R0,Rl,dR0=dR0,dRl=dRp,poles=2)[0] # 2 pole params (beta, l, L, tau0, R0, Rl, dt)
-            
-            # each guess should be positive
+            # guesses for the 2 pole priors fit (these guesses must be positive)
             beta0 = abs(popt_out2[2])
             l0 = abs(popt_out2[3])
             L0 = abs(popt_out2[4])
             tau0 = abs(popt_out2[5])
             
             # 2 pole fitting
-            v2priors,s2priors,costPriors = FitYFreqPriors(fdIdV,dIdV,priors,invpriorsCov,yerr=sdIdV,R0=abs(R0),Rl=abs(Rl),beta=beta0,l=l0,L=L0,tau0=tau0,dt=popt_out2[6])
+            v2priors, s2priors, costPriors = FitYFreqPriors(fdIdV, dIdV, priors, invpriorsCov, yerr=sdIdV, R0=abs(R0), Rl=abs(Rl), beta=beta0, l=l0, L=L0, tau0=tau0, dt=popt_out2[6])
             
             # convert answer back to A, B, tauI, tauEL basis for plotting
-            v2priorsConv = ConvertFromTESValues(v2priors,s2priors)[0]
+            v2priorsConv = ConvertFromTESValues(v2priors, s2priors)[0]
             
             # Find the dIdV falltimes
             TwoPoleFallTimesPriors = FindPoleFallTimes(v2priorsConv)
             
             # save the fits with priors in time and frequency domain
-            yFit2priors = YDI(timeArray,v2priorsConv[0],v2priorsConv[1],0.0,v2priorsConv[2],v2priorsConv[3],0.0,sgAmp,Rsh,sgFreq,dutycycle)+offset
-            dIdVFit2priors = TwoPoleAdmittancePriors(fFit,v2priors[0],v2priors[1],v2priors[2],v2priors[3],v2priors[4],v2priors[5]) * np.exp(-2.0j*pi*fFit*v2priors[6])
+            yFit2priors = YDI(timeArray, v2priorsConv[0], v2priorsConv[1], 0.0, v2priorsConv[2], v2priorsConv[3], 0.0, sgAmp, Rsh, sgFreq, dutycycle)+offset
+            dIdVFit2priors = TwoPoleAdmittancePriors(fdIdV, v2priors[0], v2priors[1], v2priors[2], v2priors[3], v2priors[4], v2priors[5]) * np.exp(-2.0j*pi*fdIdV*v2priors[6])
         else:
             # set the priors variables to None
             v2priors = None
@@ -1091,13 +1083,13 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
             TwoPoleFallTimesPriors=None
             
         ## save the fits in frequency domain as variables for saving/plotting
-        dIdVFit1 = OnePoleAdmittance(fFit,v1[0],v1[1]) * np.exp(-2.0j*pi*fFit*v1[2])
-        dIdVFit2 = TwoPoleAdmittance(fFit,v2[0],v2[1],v2[2],v2[3]) * np.exp(-2.0j*pi*fFit*v2[4])
-        dIdVFit3 = ThreePoleAdmittance(fFit,v3[0],v3[1],v3[2],v3[3],v3[4],v3[5]) * np.exp(-2.0j*pi*fFit*v3[6])
+        dIdVFit1 = OnePoleAdmittance(fdIdV, v1[0], v1[1]) * np.exp(-2.0j*pi*fdIdV*v1[2])
+        dIdVFit2 = TwoPoleAdmittance(fdIdV, v2[0], v2[1], v2[2], v2[3]) * np.exp(-2.0j*pi*fdIdV*v2[4])
+        dIdVFit3 = ThreePoleAdmittance(fdIdV, v3[0], v3[1], v3[2], v3[3], v3[4], v3[5]) * np.exp(-2.0j*pi*fdIdV*v3[6])
 
     if(saveResults):
         with h5py.File(pathSave+'dIdV'+fileStr+'.h5',"w") as f:
-            f.create_dataset("t",data=timeArray)
+            f.create_dataset("t", data=timeArray)
             f.create_dataset("trace_mean", data=tmean)
             f.create_dataset("freq", data=fdIdV)
             f.create_dataset("dIdV_mean", data=dIdV)
@@ -1111,23 +1103,23 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
             f.attrs["dutycycle"] = dutycycle
             
             if fit:
-                f.create_dataset("yfit_freq_p1", data=yFit1)
-                f.create_dataset("yfit_freq_p2", data=yFit2)
-                f.create_dataset("yfit_freq_p3", data=yFit3)
-                f.create_dataset("dIdVfit_freq_p1", data=dIdVFit1)
-                f.create_dataset("dIdVfit_freq_p2", data=dIdVFit2)
-                f.create_dataset("dIdVfit_freq_p3", data=dIdVFit3)
-                f.create_dataset("yfit_freq_p2Priors", data=yFit2priors)
-                f.create_dataset("dIdVfit_freq_p2Priors", data=dIdVFit2priors)
-                f.attrs["CIparams_freq_p1"] = v1
-                f.attrs["CIcov_freq_p1"] = s1
-                f.attrs["CIcost_freq_p1"] = cost1
-                f.attrs["CIparams_freq_p2"] = v2
-                f.attrs["CIcov_freq_p2"] = s2
-                f.attrs["CIcost_freq_p2"] = cost2
-                f.attrs["CIparams_freq_p3"] = v3
-                f.attrs["CIcov_freq_p3"] = s3
-                f.attrs["CIcost_freq_p3"] = cost3
+                f.create_dataset("traceFit_p1", data=yFit1)
+                f.create_dataset("traceFit_p2", data=yFit2)
+                f.create_dataset("traceFit_p3", data=yFit3)
+                f.create_dataset("dIdVFit_p1", data=dIdVFit1)
+                f.create_dataset("dIdVFit_p2", data=dIdVFit2)
+                f.create_dataset("dIdVFit_p3", data=dIdVFit3)
+                f.create_dataset("traceFit_p2Priors", data=yFit2priors)
+                f.create_dataset("dIdVFit_p2Priors", data=dIdVFit2priors)
+                f.attrs["FitParams_p1"] = v1
+                f.attrs["FitCov_p1"] = s1
+                f.attrs["FitCost_p1"] = cost1
+                f.attrs["FitParams_p2"] = v2
+                f.attrs["FitCov_p2"] = s2
+                f.attrs["FitCost_p2"] = cost2
+                f.attrs["FitParams_p3"] = v3
+                f.attrs["FitCov_p3"] = s3
+                f.attrs["FitCost_p3"] = cost3
                 f.attrs["OnePoleTESparams"] = popt_out1
                 f.attrs["OnePoleTEScov"] = pcov_out1
                 f.attrs["TwoPoleTESparams"] = popt_out2
@@ -1140,200 +1132,197 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
                 f.attrs["ThreePoleFallTimes"] = ThreePoleFallTimes
                 f.attrs["TwoPoleFallTimesPriors"] = TwoPoleFallTimesPriors
     if(fit):
-        savedData = {'t':timeArray,
-                    'y':tmean,
-                    'yfit_freq_p1':yFit1,
-                    'yfit_freq_p2':yFit2,
-                    'yfit_freq_p3':yFit3,
-                    'fFit':fFit,
-                    'dIdVfit_freq_p1':dIdVFit1,
-                    'dIdVfit_freq_p2':dIdVFit2,
-                    'dIdVfit_freq_p3':dIdVFit3,
-                    'CIparams_freq_p1':v1,
-                    'CIcov_freq_p1':s1,
-                    'CIcost_freq_p1':cost1,
-                    'CIparams_freq_p2':v2,
-                    'CIcov_freq_p2':s2,
-                    'CIcost_freq_p2':cost2,
-                    'CIparams_freq_p3':v3,
-                    'CIcov_freq_p3':s3,
-                    'CIcost_freq_p3':cost3,
-                    'dIdV':dIdV,
-                    'dIdVmean':dIdV_mean,
-                    'sdIdV':sdIdV,
-                    'fdIdV':fdIdV,
-                    'Is0':offset,
-                    'dIs0':doffset,
-                    'OnePoleTESparams':popt_out1,
-                    'OnePoleTEScov':pcov_out1,
-                    'TwoPoleTESparams':popt_out2,
-                    'TwoPoleTEScov':pcov_out2,
-                    'TwoPoleTESparamsPriors':v2priors,
-                    'TwoPoleTEScovPriors':s2priors,
-                    "TwoPoleTEScostPriors":costPriors,
-                    'yfit_freq_p2Priors':yFit2priors,
-                    'dIdVfit_freq_p2Priors':dIdVFit2priors,
-                    'OnePoleFallTimes':OnePoleFallTimes,
-                    'TwoPoleFallTimes':TwoPoleFallTimes,
-                    'ThreePoleFallTimes':ThreePoleFallTimes,
-                    'TwoPoleFallTimesPriors':TwoPoleFallTimesPriors,
+        savedData = {'t': timeArray,
+                    'trace_mean': tmean,
+                    'traceFit_p1': yFit1,
+                    'traceFit_p2': yFit2,
+                    'traceFit_p3': yFit3,
+                    'freq': fdIdV,
+                    'dIdVFit_p1': dIdVFit1,
+                    'dIdVFit_p2': dIdVFit2,
+                    'dIdVFit_p3': dIdVFit3,
+                    'FitParams_p1': v1,
+                    'FitCov_p1': s1,
+                    'FitCost_p1': cost1,
+                    'FitParams_p2': v2,
+                    'FitCov_p2': s2,
+                    'FitCost_p2': cost2,
+                    'FitParams_p3': v3,
+                    'FitCov_p3': s3,
+                    'FitCost_p3': cost3,
+                    'dIdV_mean': dIdV,
+                    'sdIdV': sdIdV,
+                    'Is0': offset,
+                    'dIs0': doffset,
+                    'OnePoleTESparams': popt_out1,
+                    'OnePoleTEScov': pcov_out1,
+                    'TwoPoleTESparams': popt_out2,
+                    'TwoPoleTEScov': pcov_out2,
+                    'TwoPoleTESparamsPriors': v2priors,
+                    'TwoPoleTEScovPriors': s2priors,
+                    "TwoPoleTEScostPriors": costPriors,
+                    'traceFit_p2Priors': yFit2priors,
+                    'dIdVFit_p2Priors': dIdVFit2priors,
+                    'OnePoleFallTimes': OnePoleFallTimes,
+                    'TwoPoleFallTimes': TwoPoleFallTimes,
+                    'ThreePoleFallTimes': ThreePoleFallTimes,
+                    'TwoPoleFallTimesPriors': TwoPoleFallTimesPriors,
                     'nTraces': nTraces}
     else:
-        savedData = {'t':timeArray,
-                    'y':tmean,
-                    'dIdV':dIdV,
-                    'dIdVmean':dIdV_mean,
-                    'sdIdV':sdIdV,
-                    'fdIdV':fdIdV,
-                    'Is0':offset,
-                    'dIs0':doffset,
+        savedData = {'t': timeArray,
+                    'trace_mean': tmean,
+                    'dIdV_mean': dIdV,
+                    'sdIdV': sdIdV,
+                    'freq': fdIdV,
+                    'Is0': offset,
+                    'dIs0': doffset,
                     'nTraces': nTraces}
     if(makePlots):
         
         ## plot the entire trace with fits
-        fig,ax=plt.subplots(figsize=(10,6))
-        ax.plot(timeArray*1e6,tmean*1e6,color='black',label='mean')
-        ax.scatter(timeArray[flatInds]*1e6,tmean[flatInds]*1e6,color='blue',marker='.',label='Slope Points',zorder=5)
+        fig,ax = plt.subplots(figsize=(10,6))
+        ax.plot(timeArray*1e6, tmean*1e6, color='black', label='mean')
+        ax.scatter(timeArray[flatInds]*1e6, tmean[flatInds]*1e6, color='blue', marker='.', label='Slope Points', zorder=5)
         if(fit):
-            ax.plot(timeArray*1e6+v1[2]*1e6,yFit1*1e6,'-',color='magenta',alpha=0.9,label='x(f) 1-pole fit')
-            ax.plot(timeArray*1e6+v2[4]*1e6,yFit2*1e6,'-',color='green',alpha=0.9,label='x(f) 2-pole fit')
-            ax.plot(timeArray*1e6+v3[6]*1e6,yFit3*1e6,'-',color='orange',alpha=0.9,label='x(f) 3-pole fit')
+            ax.plot(timeArray*1e6+v1[2]*1e6, yFit1*1e6, '-', color='magenta', alpha=0.9, label='x(f) 1-pole fit')
+            ax.plot(timeArray*1e6+v2[4]*1e6, yFit2*1e6, '-', color='green', alpha=0.9, label='x(f) 2-pole fit')
+            ax.plot(timeArray*1e6+v3[6]*1e6, yFit3*1e6, '-', color='orange', alpha=0.9, label='x(f) 3-pole fit')
             if priors is not None:
-                ax.plot(timeArray*1e6+v2priors[6]*1e6,yFit2priors*1e6,'-',color='cyan',alpha=0.9,label='x(f) 2-pole fit with priors')
+                ax.plot(timeArray*1e6+v2priors[6]*1e6, yFit2priors*1e6, '-', color='cyan', alpha=0.9, label='x(f) 2-pole fit with priors')
         ax.set_xlabel('Time ($\mu$s)')
         ax.set_ylabel('Amplitude ($\mu$A)')
-        ax.set_xlim(0,max(timeArray)*1e6)
+        ax.set_xlim(0, max(timeArray)*1e6)
         
         ymax=max(tmean)-offset
         ymin=offset-min(tmean)
-        urange=max([ymax,ymin])
-        ax.set_ylim((offset-urange*1.5)*1e6,(offset+urange*1.5)*1e6)
+        urange=max([ymax, ymin])
+        ax.set_ylim((offset-urange*1.5)*1e6, (offset+urange*1.5)*1e6)
         ax.legend(loc='upper left')
         ax.set_title(fileStr)
         ax.grid(linestyle='dotted')
-        ax.tick_params(which='both',direction='in',right='on',top='on')
+        ax.tick_params(which='both', direction='in', right='on', top='on')
         fig.savefig(pathSave+'dIsTraces'+fileStr+'.png')
         plt.close(fig)
         
         ## plot a single period of the trace
-        fig,ax=plt.subplots(figsize=(10,6))
-        ax.plot(timeArray*1e6,tmean*1e6,color='black',label='data')
+        fig, ax = plt.subplots(figsize=(10,6))
+        ax.plot(timeArray*1e6, tmean*1e6, color='black', label='data')
         if(fit):
-            ax.plot(timeArray*1e6+v1[2]*1e6,yFit1*1e6,color='magenta',label='x(f) 1-pole fit')
-            ax.plot(timeArray*1e6+v2[4]*1e6,yFit2*1e6,color='green',label='x(f) 2-pole fit')
-            ax.plot(timeArray*1e6+v3[6]*1e6,yFit3*1e6,color='orange',label='x(f) 3-pole fit')
+            ax.plot(timeArray*1e6+v1[2]*1e6, yFit1*1e6, color='magenta', label='x(f) 1-pole fit')
+            ax.plot(timeArray*1e6+v2[4]*1e6, yFit2*1e6, color='green', label='x(f) 2-pole fit')
+            ax.plot(timeArray*1e6+v3[6]*1e6, yFit3*1e6, color='orange', label='x(f) 3-pole fit')
             if priors is not None:
-                ax.plot(timeArray*1e6+v2priors[6]*1e6,yFit2priors*1e6,'-',color='cyan',alpha=0.9,label='x(f) 2-pole fit with priors')
+                ax.plot(timeArray*1e6+v2priors[6]*1e6, yFit2priors*1e6, '-', color='cyan', alpha=0.9, label='x(f) 2-pole fit with priors')
         ax.set_xlabel('Time ($\mu$s)')
         ax.set_ylabel('Amplitude ($\mu$A)')
 
         halfRange=0.6*period
-        ax.set_xlim((period-halfRange)*1e6,(period+halfRange)*1e6)
+        ax.set_xlim((period-halfRange)*1e6, (period+halfRange)*1e6)
 
         ax.legend(loc='upper left')
         ax.set_title(fileStr)
         ax.grid(linestyle='dotted')
-        ax.tick_params(which='both',direction='in',right='on',top='on')
+        ax.tick_params(which='both', direction='in', right='on', top='on')
         fig.savefig(pathSave+'dIsTracesFit'+fileStr+'.png')
         plt.close(fig)
 
         ## plot zoomed in on the trace
-        fig,ax=plt.subplots(figsize=(10,6))
-        ax.plot(timeArray*1e6,tmean*1e6,color='black',label='data')
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.plot(timeArray*1e6, tmean*1e6, color='black', label='data')
         if(fit):
-            ax.plot(timeArray*1e6+v1[2]*1e6,yFit1*1e6,color='magenta',label='x(f) 1-pole fit')
-            ax.plot(timeArray*1e6+v2[4]*1e6,yFit2*1e6,color='green',label='x(f) 2-pole fit')
-            ax.plot(timeArray*1e6+v3[6]*1e6,yFit3*1e6,color='orange',label='x(f) 3-pole fit')
+            ax.plot(timeArray*1e6+v1[2]*1e6, yFit1*1e6, color='magenta', label='x(f) 1-pole fit')
+            ax.plot(timeArray*1e6+v2[4]*1e6, yFit2*1e6, color='green', label='x(f) 2-pole fit')
+            ax.plot(timeArray*1e6+v3[6]*1e6, yFit3*1e6, color='orange', label='x(f) 3-pole fit')
             if priors is not None:
-                ax.plot(timeArray*1e6+v2priors[6]*1e6,yFit2priors*1e6,'-',color='cyan',alpha=0.9,label='x(f) 2-pole fit with priors')
+                ax.plot(timeArray*1e6+v2priors[6]*1e6, yFit2priors*1e6, '-', color='cyan', alpha=0.9, label='x(f) 2-pole fit with priors')
         ax.set_xlabel('Time ($\mu$s)')
         ax.set_ylabel('Amplitude ($\mu$A)')
 
         halfRange=0.1*period
-        ax.set_xlim((period-halfRange)*1e6,(period+halfRange)*1e6)
+        ax.set_xlim((period-halfRange)*1e6, (period+halfRange)*1e6)
 
         ax.legend(loc='upper left')
         ax.set_title(fileStr)
         ax.grid(linestyle='dotted')
-        ax.tick_params(which='both',direction='in',right='on',top='on')
+        ax.tick_params(which='both', direction='in', right='on', top='on')
         fig.savefig(pathSave+'dIsTracesZoomFit'+fileStr+'.png')
         plt.close(fig)
         
         ## plot the traces as well as the traces flipped in order to check asymmetry
-        fig,ax=plt.subplots(figsize=(10,6))
-        ax.plot(timeArray*1e6,(tmean-offset)*1e6,color='black',label='data')
+        fig, ax = plt.subplots(figsize=(10,6))
+        ax.plot(timeArray*1e6, (tmean-offset)*1e6, color='black', label='data')
         timeArray_flipped=timeArray-period/2.0
         tmean_flipped=-(tmean-offset)
-        ax.plot(timeArray_flipped*1e6,tmean_flipped*1e6,color='blue',label='flipped data')
+        ax.plot(timeArray_flipped*1e6, tmean_flipped*1e6, color='blue', label='flipped data')
         if(fit):
-            ax.plot(timeArray*1e6+v1[2]*1e6,(yFit1-offset)*1e6,color='magenta',label='x(f) 1-pole fit')
-            ax.plot(timeArray*1e6+v2[4]*1e6,(yFit2-offset)*1e6,color='green',label='x(f) 2-pole fit')
-            ax.plot(timeArray*1e6+v3[6]*1e6,(yFit3-offset)*1e6,color='orange',label='x(f) 3-pole fit')
+            ax.plot(timeArray*1e6+v1[2]*1e6, (yFit1-offset)*1e6, color='magenta', label='x(f) 1-pole fit')
+            ax.plot(timeArray*1e6+v2[4]*1e6, (yFit2-offset)*1e6, color='green', label='x(f) 2-pole fit')
+            ax.plot(timeArray*1e6+v3[6]*1e6, (yFit3-offset)*1e6, color='orange', label='x(f) 3-pole fit')
             if priors is not None:
-                ax.plot(timeArray*1e6+v2priors[6]*1e6,(yFit2priors-offset)*1e6,'-',color='cyan',alpha=0.9,label='x(f) 2-pole fit with priors')
+                ax.plot(timeArray*1e6+v2priors[6]*1e6, (yFit2priors-offset)*1e6, '-', color='cyan', alpha=0.9, label='x(f) 2-pole fit with priors')
         ax.set_xlabel('Time ($\mu$s)')
         ax.set_ylabel('Amplitude ($\mu$A)')
         ax.legend(loc='upper left')
         ax.set_title(fileStr)
         ax.grid(linestyle='dotted')
-        ax.tick_params(which='both',direction='in',right='on',top='on')
+        ax.tick_params(which='both', direction='in', right='on', top='on')
         fig.savefig(pathSave+'dIsTracesFlipped'+fileStr+'.png')
         plt.close(fig)
         
         ## histogram of the skewnesses
-        fig,ax=plt.subplots(figsize=(8,6))
-        ax.hist(skewnesses,bins=200,range=(0,1),log=True,histtype='step',color='green')
+        fig, ax = plt.subplots(figsize=(8,6))
+        ax.hist(skewnesses, bins=200, range=(0, 1), log=True, histtype='step', color='green')
         if(autoCut):
-            ax.hist(skews_all,bins=200,range=(0,1),log=True,histtype='step',color='black')
+            ax.hist(skews_all, bins=200, range=(0, 1), log=True, histtype='step', color='black')
         ax.set_xlabel('Skewness')
         ax.set_title(fileStr)
         ax.grid(linestyle='dotted')
-        ax.tick_params(which='both',direction='in',right='on',top='on')
+        ax.tick_params(which='both', direction='in', right='on', top='on')
         fig.savefig(pathSave+'dIdV_Skewness'+fileStr+'.png')
         plt.close(fig)
         
         ## histogram of the means
-        fig,ax=plt.subplots(figsize=(8,6))
+        fig, ax = plt.subplots(figsize=(8,6))
         topMean=np.max(means*1e6)
         botMean=np.min(means*1e6)
-        ax.hist(means*1e6,bins=200,range=(botMean,topMean),log=True,histtype='step',color='green')
+        ax.hist(means*1e6, bins=200, range=(botMean, topMean), log=True, histtype='step', color='green')
         if(autoCut):
-            ax.hist(means_all*1e6,bins=200,range=(botMean,topMean),log=True,histtype='step',color='black')
+            ax.hist(means_all*1e6, bins=200, range=(botMean, topMean), log=True, histtype='step', color='black')
         ax.set_xlabel('Mean ($\mu$A)')
         ax.set_title(fileStr)
         ax.grid(linestyle='dotted')
-        ax.tick_params(which='both',direction='in',right='on',top='on')
+        ax.tick_params(which='both', direction='in', right='on', top='on')
         fig.savefig(pathSave+'dIdV_Mean'+fileStr+'.png')
         plt.close(fig)
         
         ## histogram of the ranges
-        fig,ax=plt.subplots(figsize=(8,6))
+        fig, ax = plt.subplots(figsize=(8,6))
         if(autoCut):
             rmax=max(ranges_all*1e6)
         else:
             rmax=max(ranges*1e6)
         if(rmax < 10.0):
             rmax=10.0
-        ax.hist(ranges*1e6,bins=200,range=(0.0,rmax),log=True,histtype='step',color='green')
+        ax.hist(ranges*1e6, bins=200, range=(0.0, rmax), log=True, histtype='step', color='green')
         if(autoCut):
-            ax.hist(ranges_all*1e6,bins=200,range=(0.0,rmax),log=True,histtype='step',color='black')
+            ax.hist(ranges_all*1e6, bins=200, range=(0.0, rmax), log=True, histtype='step', color='black')
         ax.set_xlabel('Range ($\mu$A)')
         ax.set_title(fileStr)
         ax.grid(linestyle='dotted')
-        ax.tick_params(which='both',direction='in',right='on',top='on')
+        ax.tick_params(which='both', direction='in', right='on', top='on')
         fig.savefig(pathSave+'dIdV_Range'+fileStr+'.png')
         plt.close(fig)
         
         ## histogram of the slopes
-        fig,ax=plt.subplots(figsize=(8,6))
+        fig, ax = plt.subplots(figsize=(8,6))
         ts=np.array(slopes)*1e6
-        ax.hist(slopes*1e6,bins=200,range=(-10,10),log=True,histtype='step',label='Top',color='green')
+        ax.hist(slopes*1e6, bins=200, range=(-10, 10), log=True, histtype='step', label='Top', color='green')
         if(autoCut):
-            ax.hist(slopes_all*1e6,bins=200,range=(-10,10),log=True,histtype='step',label='Top',color='black')
+            ax.hist(slopes_all*1e6, bins=200, range=(-10, 10), log=True, histtype='step', label='Top', color='black')
         ax.set_xlabel('Slope ($\mu$A/s)')
         ax.set_title(fileStr)
         ax.grid(linestyle='dotted')
-        ax.tick_params(which='both',direction='in',right='on',top='on')
+        ax.tick_params(which='both', direction='in', right='on', top='on')
         fig.savefig(pathSave+'dIdV_Slope'+fileStr+'.png')
         plt.close(fig)
         
@@ -1342,55 +1331,55 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
         plotInds=np.abs(1/frac_err) > 2.0 
         
         ## plot the real part of the dI/dV in frequency domain
-        fig,ax=plt.subplots(figsize=(10,6))
+        fig, ax = plt.subplots(figsize=(10,6))
         
-        ax.plot(fFit[fFit>0],np.real(dIdVFit2)[fFit>0],color='green',label='x(f) 2-pole fit',zorder=7)
-        ax.plot(fFit[fFit>0],np.real(dIdVFit3)[fFit>0],color='orange',label='x(f) 3-pole fit',zorder=8)
+        ax.plot(fdIdV[fdIdV>0], np.real(dIdVFit2)[fdIdV>0], color='green', label='x(f) 2-pole fit', zorder=7)
+        ax.plot(fdIdV[fdIdV>0], np.real(dIdVFit3)[fdIdV>0], color='orange', label='x(f) 3-pole fit', zorder=8)
         if priors is not None:
-            ax.plot(fFit[fFit>0],np.real(dIdVFit2priors)[fFit>0],color='cyan',label='x(f) 2-pole fit with priors',zorder=9)
-        ax.scatter(fdIdV[plotInds][fdIdV[plotInds]>0],np.real(dIdV[plotInds])[fdIdV[plotInds]>0],color='blue',label='x(f) mean',s=5,zorder=2)
+            ax.plot(fdIdV[fdIdV>0], np.real(dIdVFit2priors)[fdIdV>0], color='cyan', label='x(f) 2-pole fit with priors', zorder=9)
+        ax.scatter(fdIdV[plotInds][fdIdV[plotInds]>0], np.real(dIdV[plotInds])[fdIdV[plotInds]>0], color='blue', label='x(f) mean', s=5, zorder=2)
         
         ## plot error in real part of dIdV
-        ax.plot(fdIdV[plotInds][fdIdV[plotInds]>0],np.real(dIdV[plotInds]+sdIdV[plotInds])[fdIdV[plotInds]>0],color='black',label='x(f) 1-$\sigma$ bounds',alpha=0.1,zorder=1)
-        ax.plot(fdIdV[plotInds][fdIdV[plotInds]>0],np.real(dIdV[plotInds]-sdIdV[plotInds])[fdIdV[plotInds]>0],color='black',alpha=0.1,zorder=1)
+        ax.plot(fdIdV[plotInds][fdIdV[plotInds]>0], np.real(dIdV[plotInds]+sdIdV[plotInds])[fdIdV[plotInds]>0], color='black', label='x(f) 1-$\sigma$ bounds', alpha=0.1, zorder=1)
+        ax.plot(fdIdV[plotInds][fdIdV[plotInds]>0], np.real(dIdV[plotInds]-sdIdV[plotInds])[fdIdV[plotInds]>0], color='black', alpha=0.1, zorder=1)
         
         ax.set_xlabel('Frequency (Hz)')
         ax.set_ylabel('Re($dI/dV$) ($\Omega^{-1}$)')
         ax.set_xscale('log')
-        ax.set_xlim(min(fdIdV),max(fdIdV))
-        ax.set_ylim(-100,100)
+        ax.set_xlim(min(fdIdV), max(fdIdV))
+        ax.set_ylim(-100, 100)
         ax.legend(loc='upper left')
         ax.set_title(fileStr)
-        ax.tick_params(right='on',top='on')
+        ax.tick_params(right='on', top='on')
         ax.grid(which='major')
-        ax.grid(which='minor',linestyle='dotted',alpha=0.3)
+        ax.grid(which='minor', linestyle='dotted', alpha=0.3)
         
         fig.savefig(pathSave+'dIdV_Real'+fileStr+'.png')
         plt.close(fig)
             
             
         ## plot the imaginary part of the dI/dV in frequency domain
-        fig,ax=plt.subplots(figsize=(10,6))
-        ax.plot(fFit[fFit>0],np.imag(dIdVFit2)[fFit>0],color='green',label='x(f) 2-pole fit',zorder=7)
-        ax.plot(fFit[fFit>0],np.imag(dIdVFit3)[fFit>0],color='orange',label='x(f) 3-pole fit',zorder=8)
+        fig, ax = plt.subplots(figsize=(10,6))
+        ax.plot(fdIdV[fdIdV>0], np.imag(dIdVFit2)[fdIdV>0], color='green', label='x(f) 2-pole fit', zorder=7)
+        ax.plot(fdIdV[fdIdV>0], np.imag(dIdVFit3)[fdIdV>0], color='orange', label='x(f) 3-pole fit', zorder=8)
         if priors is not None:
-            ax.plot(fFit[fFit>0],np.imag(dIdVFit2priors)[fFit>0],color='cyan',label='x(f) 2-pole fit with priors',zorder=9)
-        ax.scatter(fdIdV[plotInds][fdIdV[plotInds]>0],np.imag(dIdV[plotInds])[fdIdV[plotInds]>0],color='blue',label='x(f) mean',s=5,zorder=2)
+            ax.plot(fdIdV[fdIdV>0], np.imag(dIdVFit2priors)[fdIdV>0], color='cyan', label='x(f) 2-pole fit with priors', zorder=9)
+        ax.scatter(fdIdV[plotInds][fdIdV[plotInds]>0], np.imag(dIdV[plotInds])[fdIdV[plotInds]>0], color='blue', label='x(f) mean', s=5, zorder=2)
         
         ## plot error in imaginary part of dIdV
-        ax.plot(fdIdV[plotInds][fdIdV[plotInds]>0],np.imag(dIdV[plotInds]+sdIdV[plotInds])[fdIdV[plotInds]>0],color='black',label='x(f) 1-$\sigma$ bounds',alpha=0.1,zorder=1)
-        ax.plot(fdIdV[plotInds][fdIdV[plotInds]>0],np.imag(dIdV[plotInds]-sdIdV[plotInds])[fdIdV[plotInds]>0],color='black',alpha=0.1,zorder=1)
+        ax.plot(fdIdV[plotInds][fdIdV[plotInds]>0], np.imag(dIdV[plotInds]+sdIdV[plotInds])[fdIdV[plotInds]>0], color='black', label='x(f) 1-$\sigma$ bounds', alpha=0.1, zorder=1)
+        ax.plot(fdIdV[plotInds][fdIdV[plotInds]>0], np.imag(dIdV[plotInds]-sdIdV[plotInds])[fdIdV[plotInds]>0], color='black', alpha=0.1, zorder=1)
         
         ax.set_xlabel('Frequency (Hz)')
         ax.set_ylabel('Im($dI/dV$) ($\Omega^{-1}$)')
         ax.set_xscale('log')
-        ax.set_xlim(min(fdIdV),max(fdIdV))
-        ax.set_ylim(-100,100)
+        ax.set_xlim(min(fdIdV), max(fdIdV))
+        ax.set_ylim(-100, 100)
         ax.legend(loc='upper left')
         ax.set_title(fileStr)
-        ax.tick_params(which='both',direction='in',right='on',top='on')
+        ax.tick_params(which='both', direction='in', right='on', top='on')
         ax.grid(which='major')
-        ax.grid(which='minor',linestyle='dotted',alpha=0.3)
+        ax.grid(which='minor', linestyle='dotted', alpha=0.3)
         
         fig.savefig(pathSave+'dIdV_Imag'+fileStr+'.png')
         plt.close(fig)
