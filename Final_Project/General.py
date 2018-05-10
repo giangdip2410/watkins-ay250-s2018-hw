@@ -1,14 +1,6 @@
 import numpy as np
 from scipy.stats import skew
-
-import os
-import sys
-pathToTraces = os.path.abspath('/nervascratch/samwatkins/scdmsPyTools/scdmsPyTools/Traces')
-if pathToTraces not in sys.path:
-    sys.path.append(pathToTraces)
-
 from Filtering import OptimumFilterAmplitude
-
 import random
 import matplotlib.pyplot as plt
 

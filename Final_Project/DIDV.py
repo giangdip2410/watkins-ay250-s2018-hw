@@ -940,78 +940,36 @@ def processDIDV(rawTraces, timeOffset=0, traceGain=1.25e5, sgFreq=200.0, sgAmp=0
     flatInds = np.array(flatIndsTemp).flatten()
     flatTimes = timeArray[flatInds]
     
-#     n_processes = mp.cpu_count()
-#     pool = mp.Pool(processes=n_processes)
+    n_processes = mp.cpu_count()
+    pool = mp.Pool(processes=n_processes)
     
-#     itervalues = izip(traces, repeat(flatTimes), repeat(flatInds), repeat(timeArray), repeat(Rsh), repeat(sgAmp), repeat(sgFreq), repeat(dutycycle))
+    itervalues = izip(traces, repeat(flatTimes), repeat(flatInds), repeat(timeArray), repeat(Rsh), repeat(sgAmp), repeat(sgFreq), repeat(dutycycle))
     
-#     values = pool.map(get_values_star,itervalues)
-#     pool.terminate()
-#     pool.close()
-#     pool.join()
+    values = pool.map(get_values_star,itervalues)
+    pool.terminate()
+    pool.close()
+    pool.join()
     
-#     ranges = np.array(values,dtype=object)[:,0].astype(float)
-#     slopes = np.array(values,dtype=object)[:,1].astype(float)
-#     means = np.array(values,dtype=object)[:,2].astype(float)
-#     skewnesses = np.array(values,dtype=object)[:,3].astype(float)
-#     dIdVs = np.vstack(np.array(values,dtype=object)[:,4])
+    ranges = np.array(values,dtype=object)[:,0].astype(float)
+    slopes = np.array(values,dtype=object)[:,1].astype(float)
+    means = np.array(values,dtype=object)[:,2].astype(float)
+    skewnesses = np.array(values,dtype=object)[:,3].astype(float)
+    dIdVs = np.vstack(np.array(values,dtype=object)[:,4])
     
-#     if(autoCut):
-#         slopes_all=slopes
-#         means_all=means
-#         skews_all=skewnesses
-#         ranges_all=ranges
+    if(autoCut):
+        slopes_all=slopes
+        means_all=means
+        skews_all=skewnesses
+        ranges_all=ranges
         
-#         cut = autoCuts(traces,traceGain=1.0,fs=fs,isDIDV=True,sgFreq=sgFreq)
+        cut = autoCuts(traces,traceGain=1.0,fs=fs,isDIDV=True,sgFreq=sgFreq)
         
-#         means=means[cut]
-#         ranges=ranges[cut]
-#         slopes=slopes[cut]
-#         skewnesses=skewnesses[cut]
-#         traces=traces[cut]
-#         dIdVs=dIdVs[cut]
-
-
-    #for storing results
-    skewnesses = list()
-    means = list()
-    ranges = list()
-    slopes = list()
-    traces = list()
-    dIdVs = list()
-
-    for rawTrace in rawTraces:
-        # store all traces, converted to amps, as tt
-        trace = rawTrace[good_inds]/(traceGain) #ignore the tail of the trace after the last period, as this tail just adds artifacts to the FFTs
-        
-        # store the ranges
-        ranges.append(max(trace)-min(trace))
-        
-        # store the slopes (total slope of the trace)
-        topSlope = slope(flatTimes,trace[flatInds])
-        slopes.append(topSlope)
-        
-        # store the means of the traces, to use for finding the offset
-        means.append(np.mean(trace))
-        
-        # store the skewnesses
-        skewness = skew(trace)
-        skewnesses.append(abs(skewness))
-        
-        # append the trace to the list of all traces
-        traces.append(trace)
-        
-        # deconvolve the trace from the square wave to get the dI/dV in frequency domain
-        fdIdVi,dIdVi,zeroInds = DeconvolveDIDV(timeArray,trace,Rsh,sgAmp,sgFreq,dutycycle)
-        dIdVs.append(dIdVi)
-    
-    #convert to numpy structures
-    traces = np.array(traces)
-    dIdVs = np.array(dIdVs)
-    means = np.array(means)
-    skewnesses = np.array(skewnesses)
-    slopes = np.array(slopes)
-    ranges = np.array(ranges)
+        means=means[cut]
+        ranges=ranges[cut]
+        slopes=slopes[cut]
+        skewnesses=skewnesses[cut]
+        traces=traces[cut]
+        dIdVs=dIdVs[cut]
     
     #store results
     tmean = np.mean(traces,axis=0)
