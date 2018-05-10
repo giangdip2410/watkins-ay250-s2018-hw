@@ -4,7 +4,7 @@
 
 ### 1. Introduction
 
-This folder contains all of the pieces needed to run the DIDV analysis suite. This README explains what is in this folder, what I have done, and shows the results of the code to show that it runs. This README also includes the asked for **screen capture**.
+This folder contains all of the pieces needed to run the DIDV analysis suite. This README explains what is in this folder, what I have done, and shows the results of the code to show that it runs. This README also includes the asked for **screen captures**.
 
 ### 2. Proposal
 
@@ -22,11 +22,11 @@ Below is the project proposal that I submitted on Piazza.
 
 ### 3. Background of Code
 
-The main code that was written is called `DIDV.py`. As explained in the proposal, this code is made to take in an array of traces from our detector (a transition edge sensor, or TES). These traces are essentially measurements of the current flowing through the TES. Since these sensors operate in the transition between normal and superconducting (hence the name), the resistance of the TES will depend on both changes in temperature and changes in current. We can understand this complex dependence in the small signal limit by fitting the response of the current through the TES to a square wave jitter in the voltage across it. As long as we know the resistance of the TES, as well as the resistance of the various electronics in the circuit, then we can determine what the complex admittance ($\partial I/\partial V) of the TES, which allows us to calculate many other aspects of the detector ($\partial I/\partial P$, the expected noise of the detector, the expected energy resolution of the detector, etc.).
+The main code that was written is called `DIDV.py`. As explained in the proposal, this code is made to take in an array of traces from our detector (a transition edge sensor, or TES). These traces are essentially measurements of the current flowing through the TES. Since these sensors operate in the transition between normal and superconducting (hence the name), the resistance of the TES will depend on both changes in temperature and changes in current. We can understand this complex dependence in the small signal limit by fitting the response of the current through the TES to a square wave jitter in the voltage across it. As long as we know the resistance of the TES, as well as the resistance of the various electronics in the circuit, then we can determine what the complex admittance (dI/dP) of the TES, which allows us to calculate many other aspects of the detector (dI/dP, the expected noise of the detector, the expected energy resolution of the detector, etc.).
 
 ### 4. What I've Done
 
-What I have done is written a fitting routine that takes an array of traces, deconvolves the trace to get the measured $\partial I/ \partial V$, fits the complex admittance in frequency space to four different fitting models (a 1-pole model, a 2-pole model, a 3-pole model, and a 2-pole model that allows the use of prior knowledge of parameters), saves the results of the fit, and creates plots of the fit in time domain/frequency space, as well as some diagnostic plots (to see distributions of means, slopes, ranges, and skewnesses).
+What I have done is written a fitting routine that takes an array of traces, deconvolves the trace to get the measured dI/dV, fits the complex admittance in frequency space to four different fitting models (a 1-pole model, a 2-pole model, a 3-pole model, and a 2-pole model that allows the use of prior knowledge of parameters), saves the results of the fit, and creates plots of the fit in time domain/frequency space, as well as some diagnostic plots (to see distributions of means, slopes, ranges, and skewnesses).
 
 In this code, I save the data to an HDF5 file via h5py, use parallel processing to deconvolve the traces faster than serial, use matplotilb to create many plots, and use numpy and scipy extensively.
 
@@ -38,32 +38,64 @@ As far as testing the code goes, the main function that does the processing is c
 
 ### 6. Results
 
-The test script `test_didv.ipynb` shows that the fits were indeed successful. I have also showed the outputted plots below, to show that they work. Since a screen capture was requested, I've added screen captures below the outputted figures.
+The test script `test_didv.ipynb` shows that the fits were indeed successful. I have also showed the outputted plots below, to show that they work. Since a screen capture was requested, I've added screen captures below the outputted figures. Note: the 1-pole fit (for when normal or superconducting) should not fit well, as the example dataset is for 2-pole data (in transition). We see this in the plots below. **Be sure to scroll to the bottom to see the screenshots!**
 
 ![](dIsTracesexample_traces_data.png)
 
+**Figure 1:** Plot of the overall fit in time domain.
+
 ![](dIsTracesFitexample_traces_data.png)
+
+**Figure 2:** Zoomed in plot of the overall fit in time domain.
 
 ![](dIsTracesZoomFitexample_traces_data.png)
 
+**Figure 3:** Further zoomed in plot of the overall fit in time domain.
+
 ![](dIsTracesFlippedexample_traces_data.png)
+
+**Figure 4:** Plot of the traces and fits along with the flipped trace (this is to check for nonlinearities, of which we see none for this trace).
 
 ![](dIdV_Realexample_traces_data.png)
 
+**Figure 5:** Real part of the dI/dV in frequency space.
+
 ![](dIdV_Imagexample_traces_data.png)
+
+**Figure 6:** Imaginary part of the dI/dV in frequency space.
 
 ![](dIdV_Meanexample_traces_data.png)
 
+**Figure 7:** Histogram of the mean of each trace.
+
 ![](dIdV_Rangeexample_traces_data.png)
+
+**Figure 8:** Histogram of the range (max - min) of each trace.
 
 ![](dIdV_Slopeexample_traces_data.png)
 
+**Figure 9:** Histogram of the slope of each trace.
+
 ![](dIdV_Skewnessexample_traces_data.png)
+
+**Figure 10:** Histogram of the skewness of each trace.
 
 ![](Capture_1.png)
 
+**Figure 11:** Screen capture of code before running anything.
+
 ![](Capture_2.png)
+
+**Figure 12:** Screen capture of code after initializing the needed packages/variables and loading the example data.
 
 ![](Capture_3.png)
 
+**Figure 13:** Screen capture of code after running `processDIDV` and printing out the outputted `savedData` dictionary.
+
 ![](Capture_4.png)
+
+**Figure 14:** Screen capture of code after loading and printing the outputted images, to show the images were created.
+
+![](Capture_5.png)
+
+**Figure 15:** Screen capture of command line, showing the directory where the fit data is stored as an HDF5 file (see the highlighted file).
